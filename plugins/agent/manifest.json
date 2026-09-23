@@ -1,0 +1,9 @@
+{
+  "id": "agent",
+  "name": "Obsidian Agent",
+  "version": "0.1.0",
+  "minAppVersion": "1.11.4",
+  "description": "A vault-aware AI agent in the sidebar.",
+  "author": "nvirellia",
+  "isDesktopOnly": true
+}

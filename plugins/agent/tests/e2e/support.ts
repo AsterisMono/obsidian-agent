@@ -1,0 +1,344 @@
+import assert from 'node:assert/strict';
+import { execFileSync, spawn, spawnSync, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import http from 'node:http';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium, type Browser, type Locator, type Page } from 'playwright-core';
+
+const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const repositoryRoot = path.resolve(pluginRoot, '../..');
+
+export type ModelRequest = {
+  model: string;
+  stream: boolean;
+  messages: Array<{ role: string; content?: unknown }>;
+  tools?: Array<{ type: string; function: { name: string } }>;
+};
+
+export type SavedData = {
+  activeChatId?: string;
+  chats?: Array<{ id: string; pending: boolean; messages: unknown[] }>;
+  [key: string]: unknown;
+};
+
+export type TestPaths = {
+  root: string;
+  vault: string;
+  home: string;
+  config: string;
+  data: string;
+  cache: string;
+  state: string;
+  temp: string;
+  runtime: string;
+  userData: string;
+  pluginDir: string;
+};
+
+export type ModelStream = {
+  response: http.ServerResponse;
+  chunk: (delta: Record<string, unknown>, finishReason?: string | null) => void;
+  finish: (finishReason?: string) => void;
+};
+
+export type AgentFixtureOptions = {
+  data?: Record<string, unknown>;
+  prepareVault?: (paths: TestPaths) => void | Promise<void>;
+  modelHandler?: (request: ModelRequest, stream: ModelStream) => void | Promise<void>;
+};
+
+export type AgentFixture = {
+  page: Page;
+  paths: TestPaths;
+  vault: string;
+  pluginDir: string;
+  modelPort: number;
+  requests: ModelRequest[];
+  view: () => Locator;
+  openSidebar: () => Promise<void>;
+  newChat: () => Promise<void>;
+  send: (message: string) => Promise<void>;
+  savedData: () => SavedData;
+};
+
+function createPaths(): TestPaths {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'obsidian-agent-e2e-'));
+  const vault = path.join(root, 'vault');
+  const config = path.join(root, 'config');
+  return {
+    root, vault, config,
+    home: path.join(root, 'home'),
+    data: path.join(root, 'data'),
+    cache: path.join(root, 'cache'),
+    state: path.join(root, 'state'),
+    temp: path.join(root, 'tmp'),
+    runtime: path.join(root, 'runtime'),
+    userData: path.join(config, 'obsidian'),
+    pluginDir: path.join(vault, '.obsidian', 'plugins', 'agent')
+  };
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function listen(server: http.Server): Promise<number> {
+  await new Promise<void>((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('Fixture server did not bind to a TCP port.');
+  return address.port;
+}
+
+async function unusedPort(): Promise<number> {
+  const server = http.createServer();
+  const port = await listen(server);
+  await new Promise<void>(resolve => server.close(() => resolve()));
+  return port;
+}
+
+function writeVault(paths: TestPaths, modelPort: number, data?: Record<string, unknown>): void {
+  for (const directory of [paths.pluginDir, paths.userData, paths.home, paths.data,
+    paths.cache, paths.state, paths.temp]) {
+    fs.mkdirSync(directory, { recursive: true });
+  }
+  fs.mkdirSync(paths.runtime, { recursive: true, mode: 0o700 });
+  for (const name of ['manifest.json', 'main.js', 'styles.css']) {
+    const source = path.join(pluginRoot, name);
+    if (name === 'styles.css' && !fs.existsSync(source)) continue;
+    fs.copyFileSync(source, path.join(paths.pluginDir, name));
+  }
+  fs.writeFileSync(path.join(paths.vault, 'Welcome.md'), '# Welcome\n\nFixture note content.\n');
+  fs.writeFileSync(path.join(paths.vault, '.obsidian', 'community-plugins.json'), '["agent"]\n');
+  fs.writeFileSync(path.join(paths.pluginDir, 'data.json'), JSON.stringify({
+    model: 'custom-fixture::fixture-model',
+    customEndpoints: [{ id: 'fixture', name: 'Fixture', url: `http://127.0.0.1:${modelPort}/v1`,
+      models: ['fixture-model', 'fixture-alternate'] }],
+    ...data
+  }));
+  fs.writeFileSync(path.join(paths.userData, 'obsidian.json'), JSON.stringify({
+    updateDisabled: true,
+    vaults: { agenttest12345678: { path: paths.vault, ts: Date.now(), open: true } }
+  }));
+}
+
+function modelServer(requests: ModelRequest[], events: string[], handler?: AgentFixtureOptions['modelHandler']): http.Server {
+  return http.createServer(async (req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404).end();
+      return;
+    }
+    try {
+      let body = '';
+      for await (const chunk of req) body += chunk;
+      const request = JSON.parse(body) as ModelRequest;
+      requests.push(request);
+      events.push(`request ${request.model} stream=${request.stream}`);
+      res.writeHead(200, {
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache',
+        connection: 'keep-alive'
+      });
+      res.on('close', () => events.push('response closed'));
+      const stream: ModelStream = {
+        response: res,
+        chunk: (delta, finishReason = null) => {
+          if (res.destroyed || res.writableEnded) return;
+          res.write(`data: ${JSON.stringify({
+            id: 'chatcmpl-fixture', object: 'chat.completion.chunk', created: 1,
+            model: request.model, choices: [{ index: 0, delta, finish_reason: finishReason }]
+          })}\n\n`);
+        },
+        finish: (finishReason = 'stop') => {
+          if (res.destroyed || res.writableEnded) return;
+          stream.chunk({}, finishReason);
+          res.end('data: [DONE]\n\n');
+        }
+      };
+      if (handler) await handler(request, stream);
+      else {
+        stream.chunk({ role: 'assistant', content: 'Hello ' });
+        await wait(650);
+        stream.chunk({ content: 'from the fixture.' });
+        stream.finish();
+      }
+    } catch (error) {
+      events.push(`fixture error: ${error instanceof Error ? error.message : String(error)}`);
+      if (!res.headersSent) res.writeHead(500);
+      res.end();
+    }
+  });
+}
+
+function resolveObsidian(): string {
+  const executable = process.env.OBSIDIAN_EXECUTABLE || 'obsidian';
+  const candidates = executable.includes('/') ? [path.resolve(executable)] :
+    (process.env.PATH || '').split(path.delimiter).map(directory => path.join(directory, executable));
+  const found = candidates.find(candidate => fs.existsSync(candidate));
+  if (!found) throw new Error(`Obsidian executable not found: ${executable}`);
+  return fs.realpathSync(found);
+}
+
+function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
+  const binary = resolveObsidian();
+  const storeRoot = binary.match(/^\/nix\/store\/[^/]+/)?.[0];
+  if (!storeRoot) throw new Error('The E2E sandbox requires a Nix-store Obsidian executable.');
+  const closure = execFileSync('nix-store', ['-qR', storeRoot], { encoding: 'utf8' }).trim().split('\n');
+  const bash = closure.find(item => fs.existsSync(path.join(item, 'bin/bash')));
+  const fontconfig = closure.find(item => fs.existsSync(path.join(item, 'etc/fonts/fonts.conf')));
+  if (!bash || !fontconfig) throw new Error('Obsidian Nix closure is missing Bash or fontconfig.');
+  const displayName = process.env.WAYLAND_DISPLAY;
+  const runtimeHost = process.env.XDG_RUNTIME_DIR;
+  if (!displayName || !runtimeHost) throw new Error('A Wayland display is required for isolated E2E tests.');
+  const displaySocket = path.isAbsolute(displayName) ? displayName : path.join(runtimeHost, displayName);
+  if (!fs.existsSync(displaySocket)) throw new Error(`Wayland socket not found: ${displaySocket}`);
+  const sandboxSocket = path.join(paths.runtime, path.basename(displayName));
+  const runtimePath = closure.filter(item => fs.existsSync(path.join(item, 'bin')))
+    .map(item => path.join(item, 'bin')).join(path.delimiter);
+  const mounts = [
+    '--die-with-parent', '--unshare-pid', '--unshare-ipc', '--tmpfs', '/',
+    '--dir', '/tmp', '--bind', paths.root, paths.root,
+    '--dir', '/nix', '--dir', '/nix/store',
+    ...closure.flatMap(item => ['--ro-bind', item, item]),
+    '--ro-bind', displaySocket, sandboxSocket,
+    '--dev', '/dev', '--proc', '/proc', '--clearenv',
+    '--setenv', 'HOME', paths.home,
+    '--setenv', 'XDG_CONFIG_HOME', paths.config,
+    '--setenv', 'XDG_DATA_HOME', paths.data,
+    '--setenv', 'XDG_CACHE_HOME', paths.cache,
+    '--setenv', 'XDG_STATE_HOME', paths.state,
+    '--setenv', 'XDG_RUNTIME_DIR', paths.runtime,
+    '--setenv', 'WAYLAND_DISPLAY', path.basename(displayName),
+    '--setenv', 'TMPDIR', paths.temp,
+    '--setenv', 'PATH', runtimePath,
+    '--setenv', 'FONTCONFIG_FILE', path.join(fontconfig, 'etc/fonts/fonts.conf'),
+    '--setenv', 'FONTCONFIG_PATH', path.join(fontconfig, 'etc/fonts'),
+    '--setenv', 'LANG', 'en_US.UTF-8',
+    '--setenv', 'LANGUAGE', 'en_US:en',
+    '--setenv', 'LC_ALL', 'C.UTF-8',
+    '--setenv', 'TZ', 'UTC',
+    '--chdir', paths.root
+  ];
+  const visibilityCheck = spawnSync('bwrap', [
+    ...mounts, '--', path.join(bash, 'bin/bash'), '-c',
+    'test ! -e "$1" && test ! -e /etc/passwd && test ! -e /home && test -e "$2" && test -d "$3" && test -S "$4"',
+    'sandbox-check', path.join(repositoryRoot, 'AGENTS.md'), binary, paths.vault, sandboxSocket
+  ], { encoding: 'utf8' });
+  if (visibilityCheck.status !== 0) {
+    throw new Error(`Obsidian sandbox exposes host files or hides required mounts: ${visibilityCheck.stderr || visibilityCheck.error?.message || ''}`);
+  }
+  return [
+    ...mounts, '--', binary,
+    `--user-data-dir=${paths.userData}`, `--remote-debugging-port=${debugPort}`,
+    '--lang=en-US', '--ozone-platform=wayland', '--no-sandbox', '--disable-gpu'
+  ];
+}
+
+async function waitForCdp(port: number, child: ChildProcess, spawnError: () => Error | undefined): Promise<void> {
+  for (let i = 0; i < 150; i++) {
+    const error = spawnError();
+    if (error) throw error;
+    if (child.exitCode !== null || child.signalCode !== null) {
+      throw new Error(`Obsidian exited before CDP started (code ${child.exitCode}, signal ${child.signalCode}).`);
+    }
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+      if (response.ok) return;
+    } catch {}
+    await wait(200);
+  }
+  throw new Error('Obsidian did not open its debugging endpoint.');
+}
+
+function fixture(paths: TestPaths, page: Page, modelPort: number, requests: ModelRequest[]): AgentFixture {
+  const view = () => page.locator('.agent-view');
+  const openSidebar = async () => {
+    if (await view().count() === 0) await page.locator('[aria-label="Open Obsidian Agent"]').click();
+    await view().waitFor();
+  };
+  return {
+    page, paths, vault: paths.vault, pluginDir: paths.pluginDir, modelPort, requests, view, openSidebar,
+    newChat: async () => {
+      await openSidebar();
+      await view().getByRole('button', { name: 'New chat' }).click();
+      await view().getByRole('button', { name: 'Send' }).waitFor();
+    },
+    send: async (message: string) => {
+      await view().locator('textarea[aria-label="Message"]').fill(message);
+      await view().getByRole('button', { name: 'Send' }).click();
+      await view().getByRole('button', { name: 'Send' }).waitFor({ timeout: 15000 });
+    },
+    savedData: () => JSON.parse(fs.readFileSync(path.join(paths.pluginDir, 'data.json'), 'utf8')) as SavedData
+  };
+}
+
+export async function withAgent(
+  label: string,
+  run: (agent: AgentFixture) => Promise<void>,
+  options: AgentFixtureOptions = {}
+): Promise<void> {
+  const paths = createPaths();
+  const requests: ModelRequest[] = [];
+  const events: string[] = [];
+  const pageErrors: string[] = [];
+  let stderr = '';
+  let server: http.Server | undefined;
+  let child: ChildProcess | undefined;
+  let browser: Browser | undefined;
+  let page: Page | undefined;
+  let passed = false;
+  try {
+    server = modelServer(requests, events, options.modelHandler);
+    const modelPort = await listen(server);
+    writeVault(paths, modelPort, options.data);
+    await options.prepareVault?.(paths);
+    const debugPort = await unusedPort();
+    child = spawn('bwrap', sandboxArgs(paths, debugPort), { detached: true, stdio: ['ignore', 'ignore', 'pipe'] });
+    let spawnError: Error | undefined;
+    child.on('error', error => { spawnError = error; });
+    child.stderr?.on('data', chunk => { stderr += chunk.toString(); });
+    await waitForCdp(debugPort, child, () => spawnError);
+    browser = await chromium.connectOverCDP(`http://127.0.0.1:${debugPort}`);
+    const context = browser.contexts()[0];
+    for (let i = 0; i < 100 && context.pages().length === 0; i++) await wait(200);
+    page = context.pages().find(item => item.url().startsWith('app://')) || context.pages()[0];
+    assert.ok(page, 'Obsidian window did not open');
+    page.on('pageerror', error => pageErrors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error') pageErrors.push(message.text()); });
+    await page.locator('.workspace').waitFor({ timeout: 60000 });
+    await page.evaluate(() => localStorage.setItem('language', 'en'));
+    await page.reload();
+    await page.locator('.workspace').waitFor({ timeout: 60000 });
+    assert.match(await page.evaluate(() => navigator.language), /^en\b/i, 'Obsidian did not start in English');
+    assert.equal(await page.evaluate(() => localStorage.getItem('language')), 'en');
+    const trust = page.getByRole('button', { name: 'Trust author and enable plugins' });
+    await trust.waitFor({ timeout: 15000 });
+    await trust.click();
+    await page.getByText('Create new note').first().waitFor({ timeout: 10000 });
+    await page.locator('[aria-label="Open Obsidian Agent"]').waitFor({ timeout: 30000 });
+    await run(fixture(paths, page, modelPort, requests));
+    passed = true;
+  } catch (error) {
+    if (page) await page.screenshot({ path: path.join(paths.root, `${label}-failure.png`) }).catch(() => undefined);
+    console.error(`E2E artifacts: ${paths.root}`);
+    console.error(`Obsidian stderr: ${stderr.slice(-2000)}`);
+    console.error(`Page errors: ${pageErrors.slice(-10).join(' | ')}`);
+    console.error(`Fixture requests: ${requests.length}`);
+    console.error(`Fixture events: ${events.slice(-15).join(' | ')}`);
+    throw error;
+  } finally {
+    await browser?.close().catch(() => undefined);
+    if (child?.pid) {
+      try { process.kill(-child.pid, 'SIGTERM'); } catch {}
+      await wait(500);
+      try { process.kill(-child.pid, 'SIGKILL'); } catch {}
+    }
+    server?.closeAllConnections();
+    if (server?.listening) await new Promise<void>(resolve => server!.close(() => resolve()));
+    if (passed) fs.rmSync(paths.root, { recursive: true, force: true });
+  }
+}
