@@ -3,7 +3,17 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r --if-present run build",
-    "check": "pnpm -r --if-present run check",
+    "check": "pnpm run format:check && pnpm run lint && pnpm -r --if-present run check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "pnpm -r --if-present run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.11.0",
+    "prettier": "^3.9.8",
+    "typescript-eslint": "^8.70.1"
   }
 }

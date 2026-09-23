@@ -6,6 +6,10 @@ This is a pnpm monorepo for personal Obsidian plugins. Put each plugin in `plugi
 
 Use kernel-style commit messages in the form `scope: msg`, with no commit message body.
 
+## Linting and formatting
+
+Prettier formats the workspace and ESLint lints TypeScript sources with strict type-checked rules; comments are banned in TypeScript files. `pnpm check` runs the formatting check, ESLint, and the per-package checks. devenv installs pre-commit hooks that run the same Prettier and ESLint binaries from `node_modules`, so a commit fails until the staged files are formatted and lint-clean.
+
 ## devenv
 
 `devenv.nix` selects Node.js 24 and supplies pnpm, Git, and Obsidian; pnpm comes from `languages.javascript.pnpm.enable`. Keep the generated `devenv.lock` when Nix inputs are updated. Install JavaScript dependencies with `pnpm install` at the repository root so all workspaces share `pnpm-lock.yaml`. References: [devenv JavaScript options](https://devenv.sh/languages/javascript/), [devenv direnv integration](https://devenv.sh/integrations/direnv/), and [pnpm workspaces](https://pnpm.io/workspaces).

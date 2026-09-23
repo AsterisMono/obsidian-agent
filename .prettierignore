@@ -1,0 +1,11 @@
+.agents
+.codex
+.devenv
+.direnv
+node_modules
+dist
+coverage
+devenv.lock
+pnpm-lock.yaml
+plugins/*/main.js
+plugins/*/main.js.map
