@@ -14,7 +14,7 @@ Starting OAuth for the `openai-codex` provider from Obsidian Agent fails before 
 
 ## Implementation boundary
 
-The production change belongs in the plugin's esbuild compatibility transform. It must make pi-ai's variable OAuth module loader resolvable inside the CommonJS bundle without changing provider IDs, OAuth behavior, prompt handling, notifications, or credential persistence.
+The production change must register pi-ai's public statically bundled OAuth loaders before creating the built-in provider catalog. This bypasses the variable OAuth module loader that is incompatible with the CommonJS plugin bundle without changing provider IDs, OAuth behavior, prompt handling, notifications, or credential persistence.
 
 ## Verification
 
