@@ -1,0 +1,9 @@
+{
+  "name": "obsidian-plugins",
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r --if-present run build",
+    "check": "pnpm -r --if-present run check",
+    "test": "pnpm -r --if-present run test"
+  }
+}

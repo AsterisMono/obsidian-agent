@@ -1,0 +1,3 @@
+interface:
+  display_name: "Obsidian Plugin Development"
+  short_description: "Build and maintain plugins in this Obsidian workspace"
