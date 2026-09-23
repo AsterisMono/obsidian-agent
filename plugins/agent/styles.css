@@ -1,0 +1,104 @@
+.agent-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  height: 100%;
+  padding: var(--size-4-3);
+  color: var(--text-normal);
+}
+
+.agent-top,
+.agent-controls,
+.agent-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--size-4-2);
+  flex-wrap: wrap;
+}
+
+.agent-top strong {
+  margin-right: auto;
+}
+
+.agent-controls label {
+  display: flex;
+  flex: 1 1 120px;
+  flex-direction: column;
+  gap: var(--size-4-1);
+  font-size: var(--font-ui-smaller);
+}
+
+.agent-controls select {
+  width: 100%;
+}
+
+.agent-saved {
+  display: flex;
+  flex-direction: column;
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+}
+
+.agent-saved button {
+  text-align: left;
+}
+
+.agent-conversation {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--size-4-2);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.agent-message,
+.agent-tool-activity,
+.agent-interrupted,
+.agent-error {
+  padding: var(--size-4-2) var(--size-4-3);
+  border-radius: var(--radius-m);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.agent-user {
+  align-self: flex-end;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+
+.agent-assistant {
+  align-self: flex-start;
+  background: var(--background-secondary);
+}
+
+.agent-tool-activity,
+.agent-interrupted {
+  color: var(--text-muted);
+  background: var(--background-secondary-alt);
+  font-size: var(--font-ui-small);
+}
+
+.agent-error {
+  color: var(--text-error);
+}
+
+.agent-composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+}
+
+.agent-composer textarea {
+  min-height: 80px;
+  width: 100%;
+  resize: vertical;
+}
+
+.agent-attachment {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

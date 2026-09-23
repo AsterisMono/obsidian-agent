@@ -13,6 +13,7 @@ const repositoryRoot = path.resolve(pluginRoot, '../..');
 export type ModelRequest = {
   model: string;
   stream: boolean;
+  authorization?: string;
   messages: Array<{ role: string; content?: unknown }>;
   tools?: Array<{ type: string; function: { name: string } }>;
 };
@@ -201,6 +202,7 @@ async function handleModelRequest(
     let body = '';
     for await (const chunk of req) body += String(chunk);
     const request = parseModelRequest(body);
+    request.authorization = req.headers.authorization;
     requests.push(request);
     events.push(`request ${request.model} stream=${String(request.stream)}`);
     res.writeHead(200, {
