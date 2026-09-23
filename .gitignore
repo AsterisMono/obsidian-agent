@@ -6,6 +6,9 @@ devenv.local.yaml
 # direnv
 .direnv
 
+# Local vault configuration
+/.env
+
 # pre-commit
 .pre-commit-config.yaml
 
@@ -18,6 +21,9 @@ coverage/
 # Obsidian plugin build output
 plugins/*/main.js
 plugins/*/main.js.map
+
+# Plugin data
+plugins/*/data.json
 
 # Lean build output
 .lake/

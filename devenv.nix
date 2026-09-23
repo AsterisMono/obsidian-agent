@@ -1,6 +1,8 @@
 { pkgs, ... }:
 
 {
+  dotenv.enable = true;
+
   packages = [ pkgs.git pkgs.obsidian pkgs.bubblewrap pkgs.lean4 ];
 
   languages.javascript = {
