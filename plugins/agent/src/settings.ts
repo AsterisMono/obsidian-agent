@@ -343,8 +343,8 @@ export class AgentSettingsTab extends PluginSettingTab {
         .addToggle((toggle) =>
           toggle.setValue(server.enabled).onChange(async (enabled) => {
             server.enabled = enabled;
-            await this.plugin.persist();
             await this.plugin.refreshMcp();
+            await this.plugin.persist();
             this.renderSettings();
           }),
         )

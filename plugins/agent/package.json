@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
-    "check": "tsc --noEmit",
+    "check": "tsc --noEmit && pnpm run check:lean",
+    "check:lean": "node scripts/check-lean.ts",
+    "fixtures:lean": "node scripts/check-lean.ts --write-fixtures",
     "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts"
   },
   "dependencies": {

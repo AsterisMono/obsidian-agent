@@ -163,6 +163,8 @@ export class AgentView extends ItemView {
     const partial = this.plugin.partialText;
     if (partial)
       conversation.createDiv({ cls: 'agent-message agent-assistant agent-partial', text: partial });
+    if (chat.interrupted && chat.interruptedText)
+      conversation.createDiv({ cls: 'agent-message agent-assistant', text: chat.interruptedText });
     for (const activity of chat.activity) {
       conversation.createDiv({ cls: 'agent-tool-activity', text: activity });
     }

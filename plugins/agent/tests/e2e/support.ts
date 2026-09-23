@@ -20,7 +20,13 @@ export type ModelRequest = {
 
 export type SavedData = {
   activeChatId?: string;
-  chats?: Array<{ id: string; pending: boolean; messages: unknown[] }>;
+  chats?: Array<{
+    id: string;
+    pending: boolean;
+    interrupted?: boolean;
+    messages: unknown[];
+    activity?: string[];
+  }>;
   [key: string]: unknown;
 };
 

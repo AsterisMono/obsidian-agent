@@ -2,7 +2,16 @@ import { normalizePath, TFile, type App } from 'obsidian';
 import type { AgentData } from './data.ts';
 
 export function discoverSkills(app: App, folders: string[]): TFile[] {
-  const allowed = folders.map((folder) => normalizePath(folder)).filter(Boolean);
+  const allowed = folders
+    .map((folder) => folder.trim())
+    .filter(Boolean)
+    .map((folder) => normalizePath(folder))
+    .filter(
+      (folder) =>
+        folder.length > 0 &&
+        !folder.startsWith('/') &&
+        folder.split('/').every((segment) => segment.length > 0 && !segment.startsWith('.')),
+    );
   return app.vault.getMarkdownFiles().filter((file) => {
     if (file.name !== 'SKILL.md') return false;
     if (file.path.split('/').some((part) => part.startsWith('.'))) return false;

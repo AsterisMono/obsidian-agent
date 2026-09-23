@@ -10,6 +10,13 @@ import { skillInstructions } from './skills.ts';
 import { VaultTools } from './vault-tools.ts';
 import { AGENT_VIEW, AgentView } from './view.ts';
 
+type Run = {
+  epoch: object;
+  id: bigint;
+  chat: Chat;
+  agent: Agent | null;
+};
+
 export default class AgentPlugin extends Plugin {
   data!: AgentData;
   models!: MutableModels;
@@ -18,7 +25,10 @@ export default class AgentPlugin extends Plugin {
   partialText = '';
   error = '';
   attachment: { path: string; content: string } | null = null;
-  private activeAgent: Agent | null = null;
+  private owner: Run | null = null;
+  private readonly epoch = {};
+  private nextRunId = 0n;
+  private live = true;
   private persistQueue: Promise<void> = Promise.resolve();
   private lastMarkdownView: MarkdownView | null = null;
 
@@ -32,7 +42,7 @@ export default class AgentPlugin extends Plugin {
       }
     }
     if (!this.data.chats.some((chat) => chat.id === this.data.activeChatId)) {
-      const chat = newChat();
+      const chat = this.createChat();
       this.data.chats.push(chat);
       this.data.activeChatId = chat.id;
     }
@@ -76,12 +86,13 @@ export default class AgentPlugin extends Plugin {
   }
 
   onunload(): void {
-    this.activeAgent?.abort();
+    this.cancelRun();
+    this.live = false;
     this.mcp.close().catch((error: unknown) => {
-      this.handleError(error);
+      if (this.live) this.handleError(error);
     });
     this.persistQueue.catch((error: unknown) => {
-      this.handleError(error);
+      if (this.live) this.handleError(error);
     });
   }
 
@@ -101,14 +112,23 @@ export default class AgentPlugin extends Plugin {
   currentChat(): Chat {
     const chat = this.data.chats.find((item) => item.id === this.data.activeChatId);
     if (chat) return chat;
-    const created = newChat();
+    const created = this.createChat();
     this.data.chats.push(created);
     this.data.activeChatId = created.id;
     return created;
   }
 
   isStreaming(): boolean {
-    return this.activeAgent?.state.isStreaming ?? false;
+    return this.owner !== null;
+  }
+
+  private createChat(): Chat {
+    const existing = new Set(this.data.chats.map((chat) => chat.id));
+    let chat: Chat;
+    do {
+      chat = newChat();
+    } while (existing.has(chat.id));
+    return chat;
   }
 
   refresh(): void {
@@ -126,34 +146,26 @@ export default class AgentPlugin extends Plugin {
   }
 
   async startNewChat(): Promise<void> {
-    if (this.isStreaming()) {
-      this.stop();
-      await this.activeAgent?.waitForIdle();
-    }
-    const chat = newChat();
+    this.cancelRun();
+    const chat = this.createChat();
     this.data.chats.push(chat);
     this.data.activeChatId = chat.id;
-    this.activeAgent = null;
     this.partialText = '';
     this.attachment = null;
     this.error = '';
-    await this.persist();
     this.refresh();
+    await this.persist();
   }
 
   async openChat(id: string): Promise<void> {
     if (!this.data.chats.some((chat) => chat.id === id)) return;
-    if (this.isStreaming()) {
-      this.stop();
-      await this.activeAgent?.waitForIdle();
-    }
+    this.cancelRun();
     this.data.activeChatId = id;
-    this.activeAgent = null;
     this.partialText = '';
     this.attachment = null;
     this.error = '';
-    await this.persist();
     this.refresh();
+    await this.persist();
   }
 
   async setModel(value: string): Promise<void> {
@@ -198,10 +210,56 @@ export default class AgentPlugin extends Plugin {
   }
 
   stop(): void {
-    if (!this.activeAgent?.state.isStreaming) return;
-    this.currentChat().interrupted = true;
-    this.activeAgent.abort();
+    this.cancelRun();
+  }
+
+  private owns(run: Run): boolean {
+    return this.live && run.epoch === this.epoch && this.owner === run && this.owner.id === run.id;
+  }
+
+  private cancelRun(): void {
+    const run = this.owner;
+    if (!run) return;
+    this.owner = null;
+    let retainedInMessages = false;
+    if (run.agent) {
+      run.chat.messages = [...run.agent.state.messages];
+      const streaming = run.agent.state.streamingMessage;
+      if (this.partialText && streaming?.role === 'assistant') {
+        run.chat.messages.push({
+          ...streaming,
+          content: [{ type: 'text', text: this.partialText }],
+          stopReason: 'aborted',
+        });
+        run.chat.interruptedText = '';
+        retainedInMessages = true;
+      }
+    }
+    if (this.partialText && !retainedInMessages) run.chat.interruptedText = this.partialText;
+    run.chat.pending = false;
+    run.chat.interrupted = true;
+    run.chat.updatedAt = Date.now();
+    this.partialText = '';
+    run.agent?.abort();
+    this.persist().catch((error: unknown) => {
+      if (this.live && this.owner === null) this.handleError(error);
+    });
     this.refresh();
+  }
+
+  private failRun(run: Run, error: unknown): void {
+    if (!this.owns(run)) return;
+    run.chat.pending = false;
+    run.chat.interrupted = true;
+    run.chat.updatedAt = Date.now();
+    this.owner = null;
+    this.partialText = '';
+    this.error = error instanceof Error ? error.message : String(error);
+    this.refresh();
+    new Notice(this.error);
+    this.persist().catch((failure: unknown) => {
+      if (this.live && this.owner === null) this.handleError(failure);
+    });
   }
 
   async refreshMcp(): Promise<void> {
@@ -225,7 +283,7 @@ export default class AgentPlugin extends Plugin {
   }
 
   async send(message: string): Promise<void> {
-    if (this.isStreaming()) return;
+    if (!message.trim() || this.isStreaming() || !this.live) return;
     const selected = this.models
       .getModels()
       .find((model) => `${model.provider}::${model.id}` === this.data.model);
@@ -235,12 +293,39 @@ export default class AgentPlugin extends Plugin {
       return;
     }
     const chat = this.currentChat();
-    const systemPrompt = [
-      'You are Obsidian Agent. Help with this vault using only the provided tools. Vault writes are applied immediately when requested. Read a note before editing it. Never request shell commands, deletion, or files outside the vault.',
-      await skillInstructions(this.app, this.data),
-    ]
-      .filter(Boolean)
-      .join('\n\n');
+    const run: Run = { epoch: this.epoch, id: ++this.nextRunId, chat, agent: null };
+    this.owner = run;
+    this.partialText = '';
+    this.error = '';
+    chat.pending = true;
+    chat.interrupted = false;
+    chat.interruptedText = '';
+    chat.updatedAt = Date.now();
+    if (chat.title === 'New chat') chat.title = message.slice(0, 80);
+    const thinking = this.data.thinking;
+    const skillData = {
+      ...this.data,
+      skillFolders: [...this.data.skillFolders],
+      enabledSkills: [...this.data.enabledSkills],
+    };
+    const attachment = this.attachment;
+    this.attachment = null;
+    let prompt = message;
+    if (attachment) prompt += `\n\nAttached ${attachment.path}:\n${attachment.content}`;
+    this.refresh();
+    let systemPrompt: string;
+    try {
+      systemPrompt = [
+        'You are Obsidian Agent. Help with this vault using only the provided tools. Vault writes are applied immediately when requested. Read a note before editing it. Never request shell commands, deletion, or files outside the vault.',
+        await skillInstructions(this.app, skillData),
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+    } catch (error) {
+      this.failRun(run, error);
+      return;
+    }
+    if (!this.owns(run)) return;
     const history: AgentMessage[] =
       chat.messages[0]?.role === 'system'
         ? [{ ...chat.messages[0], content: systemPrompt }, ...chat.messages.slice(1)]
@@ -248,7 +333,7 @@ export default class AgentPlugin extends Plugin {
     const agent = new Agent({
       initialState: {
         model: selected,
-        thinkingLevel: this.data.thinking,
+        thinkingLevel: thinking,
         systemPrompt,
         messages: history,
         tools: [...new VaultTools(this.app).create(), ...this.mcp.tools()],
@@ -257,29 +342,29 @@ export default class AgentPlugin extends Plugin {
         this.models.streamSimple(model, context, { ...options, fetch: nodeFetch }),
       toolExecution: 'sequential',
     });
-    this.activeAgent = agent;
-    this.partialText = '';
-    this.error = '';
-    chat.pending = true;
-    chat.interrupted = false;
-    chat.updatedAt = Date.now();
-    if (chat.title === 'New chat') chat.title = message.slice(0, 80);
-    let prompt = message;
-    if (this.attachment) {
-      prompt += `\n\nAttached ${this.attachment.path}:\n${this.attachment.content}`;
-      this.attachment = null;
-    }
-    const chatId = chat.id;
+    run.agent = agent;
     agent.subscribe(async (event) => {
+      if (!this.owns(run)) return;
       if (event.type === 'message_update' && event.message.role === 'assistant') {
         this.partialText = this.extractText(event.message);
+        chat.interruptedText = this.partialText;
+        try {
+          await this.persist();
+        } catch (error) {
+          if (this.owns(run)) this.error = error instanceof Error ? error.message : String(error);
+        }
+        if (!this.owns(run)) return;
         this.refresh();
       }
       if (event.type === 'message_end') {
         chat.messages = agent.state.messages;
-        if (event.message.role === 'assistant') this.partialText = '';
+        if (event.message.role === 'assistant') {
+          this.partialText = '';
+          chat.interruptedText = '';
+        }
         if (event.message.role === 'assistant' && event.message.stopReason === 'error') {
           this.error = event.message.errorMessage ?? 'Model request failed.';
+          chat.interrupted = true;
         }
         this.refresh();
       }
@@ -307,22 +392,29 @@ export default class AgentPlugin extends Plugin {
         chat.pending = false;
         chat.updatedAt = Date.now();
         this.partialText = '';
-        if (this.data.activeChatId === chatId) this.activeAgent = null;
-        await this.persist();
+        if (!chat.interrupted) chat.interruptedText = '';
+        try {
+          await this.persist();
+        } catch (error) {
+          if (this.owns(run)) this.error = error instanceof Error ? error.message : String(error);
+        }
+        if (!this.owns(run)) return;
+        this.owner = null;
         this.refresh();
       }
     });
-    await this.persist();
+    try {
+      await this.persist();
+    } catch (error) {
+      this.failRun(run, error);
+      return;
+    }
+    if (!this.owns(run)) return;
     this.refresh();
     try {
       await agent.prompt(prompt);
     } catch (error) {
-      chat.pending = false;
-      chat.interrupted = true;
-      this.error = error instanceof Error ? error.message : String(error);
-      await this.persist();
-      this.refresh();
-      new Notice(this.error);
+      this.failRun(run, error);
     }
   }
 

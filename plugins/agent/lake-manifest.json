@@ -1,0 +1,8 @@
+{
+  "version": "1.2.0",
+  "packagesDir": ".lake/packages",
+  "packages": [],
+  "name": "agent_verification",
+  "lakeDir": ".lake",
+  "fixedToolchain": false
+}

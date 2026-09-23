@@ -1,0 +1,11 @@
+name = "agent_verification"
+version = "0.1.0"
+defaultTargets = ["Plan0002"]
+
+[[lean_lib]]
+name = "ProofAudit"
+srcDir = "lean"
+
+[[lean_lib]]
+name = "Plan0002"
+srcDir = "docs/0002-formal-verification/lean"

@@ -1,0 +1,211 @@
+{
+  "plan": "0002-formal-verification",
+  "toolchain": "leanprover/lean4:v4.30.0",
+  "modelSourceSha256": "551d3d2ba156ebb5df7726652524c8bd4e5571527c47ddb3cdb86bd7ff90228b",
+  "cases": [
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": [67], "snapshot": [67], "status": "success" },
+      "id": "edit-success",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [65],
+        "editor": "Plan0002.GuardedEdit.Editor.text [65]",
+        "replacement": [67],
+        "snapshot": [65]
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": [67], "snapshot": [67], "status": "success" },
+      "id": "edit-empty-snapshot",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [67],
+        "snapshot": []
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": {
+        "disk": [],
+        "snapshot": null,
+        "status": "Plan0002.GuardedEdit.Rejection.missingSnapshot"
+      },
+      "id": "edit-no-snapshot",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [67],
+        "snapshot": null
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": [66], "snapshot": [65], "status": "diskConflict" },
+      "id": "edit-stale-disk",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [66],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [67],
+        "snapshot": [65]
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": {
+        "disk": [65],
+        "snapshot": [65],
+        "status": "Plan0002.GuardedEdit.Rejection.editorConflict"
+      },
+      "id": "edit-stale-editor",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [65],
+        "editor": "Plan0002.GuardedEdit.Editor.text [66]",
+        "replacement": [67],
+        "snapshot": [65]
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": [65], "snapshot": [65], "status": "effectFailureBeforeCommit" },
+      "id": "edit-io-before-commit",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.failedBeforeCommit",
+        "disk": [65],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [67],
+        "snapshot": [65]
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": null, "snapshot": [65], "status": "effectFailureUnknownDisk" },
+      "id": "edit-io-unknown",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.failedUnknown",
+        "disk": [65],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [67],
+        "snapshot": [65]
+      }
+    },
+    {
+      "contract": "V1-V5",
+      "expected": { "disk": [55296], "snapshot": [55296], "status": "success" },
+      "id": "edit-utf16",
+      "input": {
+        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "disk": [55357, 56832, 13, 10],
+        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "replacement": [55296],
+        "snapshot": [55357, 56832, 13, 10]
+      }
+    },
+    {
+      "contract": "P1-P3",
+      "expected": { "accepted": true, "segments": [[65], [66, 46, 77, 68]] },
+      "id": "path-repeated-separator",
+      "input": { "normalized": [65, 47, 66, 46, 77, 68], "raw": [65, 47, 47, 66, 46, 77, 68] }
+    },
+    {
+      "contract": "P1-P3",
+      "expected": { "accepted": false, "segments": null },
+      "id": "path-parent-rejected",
+      "input": {
+        "normalized": [46, 46, 47, 65, 46, 109, 100],
+        "raw": [46, 46, 47, 65, 46, 109, 100]
+      }
+    },
+    {
+      "contract": "D1-D3",
+      "expected": {
+        "chats": [
+          { "id": "chat", "interrupted": true, "pending": false },
+          { "id": "fresh", "interrupted": false, "pending": false }
+        ],
+        "selected": "fresh"
+      },
+      "id": "restore-pending-missing-selection",
+      "input": { "chatId": "chat", "freshId": "fresh", "pending": true, "selected": "missing" }
+    },
+    {
+      "contract": "D4",
+      "expected": {
+        "diskAfterFailure": "unknown",
+        "lastSuccessfulInput": [65],
+        "nextInFlight": [66]
+      },
+      "id": "save-failure-bookkeeping",
+      "input": {
+        "current": [66],
+        "events": ["enqueue", "start", "fail", "enqueue", "start"],
+        "lastSuccessfulInput": [65]
+      }
+    },
+    {
+      "contract": "P2",
+      "expected": { "discovered": false },
+      "id": "skill-empty-segment-folder",
+      "input": { "file": [[], [83, 75, 73, 76, 76, 46, 109, 100]], "folder": [[]] }
+    },
+    {
+      "contract": "R1",
+      "expected": { "ownerSerial": 1, "promptCount": 0 },
+      "id": "run-preparation-overlap",
+      "input": ["send token 0:1 chat", "send token 0:2 chat"]
+    },
+    {
+      "contract": "R3",
+      "expected": { "ownerPresent": false, "promptCount": 0 },
+      "id": "run-cancel-before-save",
+      "input": ["send token 0:1 chat", "cancel", "skills 0:1", "save 0:1"]
+    },
+    {
+      "contract": "R2",
+      "expected": { "error": [], "ownerSerial": 2, "partialText": [] },
+      "id": "run-stale-same-chat",
+      "input": ["send 0:1 chat", "cancel", "send 0:2 chat", "output 0:1 OLD", "done 0:1 E"]
+    },
+    {
+      "contract": "M1-M3",
+      "expected": { "firstAccepted": true, "receivingServer": "a-b", "secondAccepted": false },
+      "id": "mcp-name-collision",
+      "input": {
+        "name": [109, 99, 112, 95, 97, 98, 95, 112, 105, 110, 103],
+        "servers": ["a-b", "ab"],
+        "tool": "ping"
+      }
+    },
+    {
+      "contract": "M4-M5",
+      "expected": { "closeRequested": true, "published": false },
+      "id": "mcp-disabled-late-success",
+      "input": ["configure attempt 0:1 revision 1", "disable", "connect 0:1", "discover 0:1"]
+    },
+    {
+      "contract": "M6",
+      "expected": { "published": true },
+      "id": "mcp-current-success",
+      "input": ["configure attempt 0:1 revision 1", "connect 0:1", "discover 0:1"]
+    },
+    {
+      "contract": "M4-M5",
+      "expected": { "closeRequested": true, "published": false },
+      "id": "mcp-retired-token-reuse",
+      "input": [
+        "configure attempt 0:1 revision 1",
+        "disable",
+        "configure attempt 0:1 revision 1",
+        "late connect 0:1",
+        "late discover 0:1"
+      ]
+    }
+  ],
+  "schemaVersion": 1
+}

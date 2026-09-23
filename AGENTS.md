@@ -2,6 +2,14 @@
 
 This is a pnpm monorepo for personal Obsidian plugins. Put each plugin in `plugins/<plugin-id>/` and reusable workspace code in `packages/`. Keep plugin-specific dependencies and build scripts in the plugin's `package.json`; use the root scripts to run available scripts across the workspace.
 
+## Feature workflow
+
+Follow [Feature Workflow](.agents/skills/feature-workflow/SKILL.md) to take a user-suggested feature through its plan, Lean verification, independent E2E testcase design, implementation, E2E regression, and commit. The skill owns the plan layout and the planner's responsibility for Lean artifacts.
+
+## Scripts
+
+Write repository scripts in TypeScript (`.ts`, `.mts`, or `.cts`), never JavaScript (`.js`, `.mjs`, or `.cjs`). Run TypeScript scripts with the repository's Node.js 24 runtime and include them in the owning package's TypeScript checks. TypeScript scripts follow the same lint and no-comments rules as other TypeScript sources.
+
 ## Commits
 
 Use kernel-style commit messages in the form `scope: msg`, with no commit message body.
