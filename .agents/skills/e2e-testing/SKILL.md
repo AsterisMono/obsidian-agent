@@ -9,7 +9,7 @@ description: Design, write, run, and debug Obsidian plugin end-to-end tests.
 
 - Require a written current feature plan. If it is missing, stop and request it. Treat it as the source of expected behavior; earlier plans, current code, existing tests, and the test harness may provide context but must not replace its requirements.
 - Apply the repository's [QA Methodology](../qa-methodology/SKILL.md) skill to choose meaningful behaviors, boundaries, and failure states. Read its relevant test-design or risk references when needed. If the current plan leaves an expected result unclear, flag the ambiguity rather than infer it from code.
-- Write TypeScript Playwright tests. Put one feature in each `tests/e2e/<feature>.test.ts` file with exactly one top-level `test()`. Share setup in non-test helpers such as `support.ts`; update them when needed. Run the plugin's `check` script to enforce the layout.
+- Write TypeScript Playwright tests. Create one `tests/e2e/<plan-stem>.test.ts` file per written plan, using the plan's filename without `.md` as `<plan-stem>` (for example, `docs/0001-initial-plan.md` becomes `tests/e2e/0001-initial-plan.test.ts`). Cover that plan in its file with exactly one top-level `test()`. Share setup in non-test helpers such as `support.ts`; update them when needed. Run the plugin's `check` script to enforce the layout.
 
 ## Shared test harness
 
