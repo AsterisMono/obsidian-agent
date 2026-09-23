@@ -1,0 +1,3 @@
+interface:
+  display_name: 'Lean Verification'
+  short_description: 'Prove plugin invariants and connect them to E2E tests'

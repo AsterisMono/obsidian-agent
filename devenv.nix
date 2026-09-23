@@ -1,7 +1,7 @@
 { pkgs, ... }:
 
 {
-  packages = [ pkgs.git pkgs.obsidian pkgs.bubblewrap ];
+  packages = [ pkgs.git pkgs.obsidian pkgs.bubblewrap pkgs.lean4 ];
 
   languages.javascript = {
     enable = true;
