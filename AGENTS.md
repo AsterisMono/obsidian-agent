@@ -2,9 +2,9 @@
 
 This is a pnpm monorepo for personal Obsidian plugins. Put each plugin in `plugins/<plugin-id>/` and reusable workspace code in `packages/`. Keep plugin-specific dependencies and build scripts in the plugin's `package.json`; use the root scripts to run available scripts across the workspace.
 
-## Feature workflow
+## Land changes
 
-Follow [Feature Workflow](.agents/skills/feature-workflow/SKILL.md) to take a user-suggested feature through its plan, Lean verification, independent E2E testcase design, implementation, E2E regression, and commit. The skill owns the plan layout and the planner's responsibility for Lean artifacts.
+Follow [Land Changes](.agents/skills/land-changes/SKILL.md) for every change that lands in this repository, including features, bugfixes, and refactors that change plugin behavior. The workflow covers planning, Lean verification, independent E2E testcase design, implementation, E2E regression, and commit. Pure docs or tooling changes with no plugin behavior change can omit inapplicable plugin artifacts. The skill owns the plan layout and the planner's responsibility for Lean artifacts.
 
 ## Scripts
 
@@ -24,7 +24,7 @@ Prettier formats the workspace and ESLint lints TypeScript sources with strict t
 
 ## Testing
 
-Plugin feature tests are E2E only; follow [E2E Testing](.agents/skills/e2e-testing/SKILL.md) and its [QA Methodology](.agents/skills/qa-methodology/SKILL.md) reference. Before writing feature code, the feature implementation agent gives a fresh subagent with no inherited conversation the current written feature plan and these two skills. The subagent writes the E2E test code; wait for those tests before implementing the feature.
+Plugin behavior change tests are E2E only; follow [E2E Testing](.agents/skills/e2e-testing/SKILL.md) and its [QA Methodology](.agents/skills/qa-methodology/SKILL.md) reference. Before writing plugin code for a change, the implementing agent gives a fresh subagent with no inherited conversation the current written change plan and these two skills. The subagent writes the E2E test code; wait for those tests before implementing the change.
 
 ## Obsidian plugin development
 

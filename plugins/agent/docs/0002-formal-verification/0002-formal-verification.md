@@ -219,7 +219,7 @@ Checks completed on 2026-09-24:
 - `devenv shell -- pnpm check`: passed formatting, ESLint, TypeScript, every plan library, the 63-declaration axiom audit, and the 20-case fixture freshness check.
 - `devenv shell -- pnpm build`: passed the workspace bundle build.
 - A temporary theorem depending on a custom axiom was rejected by the shared audit with a nonzero exit status. The canary is outside the repository and is not part of the claimed proofs or fixture corpus.
-- The independent model review found the three counterexamples and evidence-scope issues recorded above; the model corrections and revised scope descriptions were reviewed again. The feature-workflow skill also passed the skill-creator validator, and local documentation links were checked.
+- The independent model review found the three counterexamples and evidence-scope issues recorded above; the model corrections and revised scope descriptions were reviewed again. The feature-workflow skill (now named land-changes) also passed the skill-creator validator, and local documentation links were checked.
 
 The implementation changes `src/main.ts`, `src/mcp.ts`, `src/data.ts`, `src/skills.ts`, `src/settings.ts`, and `src/view.ts` while retaining the existing transactional edit guard in `src/vault-tools.ts`. The independent `tests/e2e/0002-formal-verification.test.ts` exercises the packaged plugin in disposable vaults; `0001-initial-plan.test.ts` remains regression coverage. Starting from revision `e4027547feb0e09b0e5fd759b4b917aa70aa0784`, the following implementation checks passed on 2026-09-24:
 
