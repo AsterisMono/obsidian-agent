@@ -6,19 +6,20 @@
   "scripts": {
     "build": "node esbuild.config.mjs production",
     "build:link": "node scripts/build-and-link.ts",
-    "check": "pnpm run check:regular && pnpm run check:lean",
+    "check": "pnpm run check:format && pnpm run check:lint && pnpm run check:types && pnpm run check:actionlint && pnpm run check:lean",
+    "check:actionlint": "actionlint",
+    "check:format": "prettier --check .",
     "check:lean": "node scripts/check-lean.ts",
-    "check:regular": "pnpm run format:check && pnpm run lint && pnpm run check:types",
+    "check:lint": "eslint .",
     "check:types": "tsc --noEmit && tsc --noEmit --project .agents/skills/obsidian-computer-use/tsconfig.json",
     "dev": "node esbuild.config.mjs",
     "fixtures:lean": "node scripts/check-lean.ts --write-fixtures",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts tests/tooling/vision-desktop.test.ts",
-    "vision": "node scripts/vision-run.ts",
-    "test:vision": "node --test tests/tooling/vision.test.ts"
+    "test": "pnpm run test:tooling && pnpm run test:e2e",
+    "test:e2e": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts",
+    "test:tooling": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/tooling/*.test.ts",
+    "vision": "node scripts/vision-run.ts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.87.0",

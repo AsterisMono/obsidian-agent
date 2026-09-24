@@ -7,31 +7,141 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  regular:
-    name: Regular checks
-    uses: ./.github/workflows/regular.yml
+  checks:
+    name: Checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v17
+        with:
+          name: devenv
+      - name: Install devenv
+        timeout-minutes: 5
+        run: nix profile add nixpkgs#devenv
+      - name: Install dependencies
+        timeout-minutes: 12
+        run: devenv shell -- pnpm install --frozen-lockfile
+      - name: Prettier
+        run: devenv shell -- pnpm run check:format
+      - name: ESLint
+        run: devenv shell -- pnpm run check:lint
+      - name: TypeScript
+        run: devenv shell -- pnpm run check:types
+      - name: ActionLint
+        run: devenv shell -- pnpm run check:actionlint
+      - name: Lean
+        run: devenv shell -- pnpm run check:lean
 
-  lean:
-    name: Lean
-    needs: regular
-    uses: ./.github/workflows/lean.yml
+  tests:
+    name: Tests
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v17
+        with:
+          name: devenv
+      - name: Install devenv
+        timeout-minutes: 5
+        run: nix profile add nixpkgs#devenv
+      - name: Install dependencies
+        timeout-minutes: 12
+        run: devenv shell -- pnpm install --frozen-lockfile
+      - name: Allow bubblewrap user namespaces on the disposable runner
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Tooling
+        run: devenv shell -- pnpm test:tooling
+      - name: E2E
+        id: e2e
+        run: devenv shell -- pnpm test:e2e
+      - name: Upload test failure artifacts
+        if: failure() && steps.e2e.outcome == 'failure'
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-failure-artifacts
+          if-no-files-found: ignore
+          path: |
+            /tmp/obsidian-agent-e2e-*
+            /tmp/obsidian-e2e-display-*
 
-  e2e:
-    name: E2E
-    needs: regular
-    uses: ./.github/workflows/e2e.yml
-
-  vision:
-    name: Vision
-    needs: [regular, lean, e2e]
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-    permissions:
-      contents: read
-    uses: ./.github/workflows/vision.yml
-    secrets:
-      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+  visual-test:
+    name: Visual Test
+    needs: [checks, tests]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v17
+        with:
+          name: devenv
+      - name: Install devenv
+        timeout-minutes: 5
+        run: nix profile add nixpkgs#devenv
+      - name: Install dependencies
+        timeout-minutes: 12
+        run: devenv shell -- pnpm install --frozen-lockfile
+      - name: Allow bubblewrap user namespaces on the disposable runner
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - name: Run vision agent
+        id: vision
+        if: success() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        continue-on-error: true
+        timeout-minutes: 22
+        shell: bash
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          VISION_OUT_DIR: /tmp/obsidian-vision-run
+          VISION_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          VISION_MODEL: deepseek-v4.1-flash
+          VISION_THINKING: xhigh
+        run: |
+          set -o pipefail
+          devenv shell -- pnpm vision | tee /tmp/vision-result.jsonl
+      - name: Upload vision evidence
+        if: always() && (steps.vision.outcome == 'success' || steps.vision.outcome == 'failure')
+        uses: actions/upload-artifact@v7
+        with:
+          name: vision-evidence-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            /tmp/vision-result.jsonl
+            /tmp/obsidian-vision-run
+            /tmp/obsidian-e2e-display-*
+            /tmp/obsidian-agent-e2e-*
+      - name: Upload structured report
+        if: always() && (steps.vision.outcome == 'success' || steps.vision.outcome == 'failure')
+        uses: actions/upload-artifact@v7
+        with:
+          name: vision-report-${{ github.run_attempt }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: /tmp/obsidian-vision-run/report.json
