@@ -7,6 +7,7 @@ import {
   type MutableModels,
 } from '@earendil-works/pi-ai';
 import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy';
+import { registerBunOAuthFlows } from '@earendil-works/pi-ai/bun-oauth';
 import { builtinModels } from '@earendil-works/pi-ai/providers/all';
 import type { SecretStorage } from 'obsidian';
 import { type AgentData, isRecord, providerSecretId } from './data.ts';
@@ -98,6 +99,7 @@ export class SecretCredentials implements CredentialStore {
 }
 
 export function createAgentModels(data: AgentData, credentials: SecretCredentials): MutableModels {
+  registerBunOAuthFlows();
   const models = builtinModels({ credentials });
   for (const endpoint of data.customEndpoints) {
     const providerId = `custom-${endpoint.id}`;
