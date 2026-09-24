@@ -22,9 +22,9 @@ The E2E regression packages the plugin, opens real Obsidian settings, selects `o
 
 Run:
 
-- `pnpm --filter obsidian-agent check`
-- `pnpm --filter obsidian-agent build`
-- `pnpm --filter obsidian-agent test`
+- `pnpm check`
+- `pnpm build`
+- `pnpm test`
 - `pnpm check`
 
 ## Lean applicability

@@ -9,8 +9,8 @@ Deliver plugins that Obsidian can load from this workspace. Follow the root `AGE
 
 ## Workspace and build
 
-- Read the root `package.json`, `pnpm-workspace.yaml`, and the target plugin's manifest, scripts, and source before changing its setup. The root `README.md` describes the devenv toolchain and development vault workflow.
-- Put plugins in `plugins/<plugin-id>/` and genuinely reusable code in `packages/`. Keep dependencies and scripts in the package that uses them. Run `pnpm install` from the repository root and retain the shared lockfile.
+- Read the root `package.json`, `manifest.json`, and the source before changing the build or plugin setup. The root `README.md` describes the devenv toolchain and development vault workflow.
+- This repository is one Obsidian plugin: `manifest.json`, the bundled `main.js`, and `styles.css` sit at the repository root, with sources under `src/`. Run `pnpm install` from the repository root and retain the lockfile.
 - For a new plugin, use TypeScript with a default export extending `Plugin`. Start with `src/main.ts`, `manifest.json`, a plugin `package.json`, TypeScript configuration, and a bundler configuration. Add settings, views, CSS, and other files when the feature needs them.
 - Adapt the [official sample build](https://github.com/obsidianmd/obsidian-sample-plugin/blob/master/esbuild.config.mjs) within the plugin directory. Bundle to CommonJS `main.js` beside `manifest.json`. Externalize `obsidian`, Electron, Node built-ins, and the CodeMirror/Lezer modules supplied by Obsidian, following the sample's explicit list. Bundle other runtime dependencies, including shared workspace code, so installation does not require `node_modules`.
 - Provide plugin `dev` (watch), `build` (production), and `check` (type checking, plus configured linting) scripts. Esbuild does not type-check. Set the compilation target for the supported Obsidian runtime; the Node version used by devenv is a build tool, not the plugin's runtime contract.
@@ -58,7 +58,7 @@ Choose `registerMarkdownPostProcessor` or `registerMarkdownCodeBlockProcessor` f
 
 ## Verification and handoff
 
-- From the repository root, run `pnpm --filter <package-name> check` and `pnpm --filter <package-name> build`, plus relevant tests the package provides. Use `pnpm check`, `pnpm build`, and `pnpm test` when shared changes require workspace coverage. Root scripts skip missing package scripts, so an empty run is not evidence that a plugin was checked.
+- From the repository root, run `pnpm check`, `pnpm build`, and `pnpm test`. These run against this plugin directly rather than aggregating a workspace.
 - Inspect the build output: `manifest.json`, nonempty bundled `main.js`, and `styles.css` when used must sit at the plugin root. Confirm imports of ordinary runtime dependencies were bundled. Keep generated bundles out of source control per `.gitignore`.
 - Follow the [development vault workflow](https://docs.obsidian.md/Plugins/Getting%20started/Build%20a%20plugin) using a separate test vault. Copy or symlink the plugin directory into that vault's plugin folder. Reload the plugin after code changes and restart Obsidian after manifest changes. A watch build alone does not reload the running plugin.
 - Exercise the changed feature, relevant empty/error states, persistence when settings change, and unload/reload behavior. For note edits, check that unrelated content survives; for UI changes, check supported themes and rendering modes. Test on mobile when claiming mobile behavior has been verified.

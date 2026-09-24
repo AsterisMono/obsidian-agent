@@ -4,7 +4,7 @@ Use this reference when implementing a proof task. Writing an adoption plan alon
 
 ## Repository integration
 
-Check for existing Lean configuration before creating a project. A plugin-specific model can live in `plugins/<plugin-id>/verification/`; use `packages/` only when the code is genuinely shared. These are suggested locations for new proof work, not files that already exist.
+Check for existing Lean configuration before creating a project. Each plan's models live in `docs/<plan-stem>/lean/` with the shared Lake project at the repository root, and shared proof tooling lives in `lean/`. These are suggested locations for new proof work, not files that already exist.
 
 For a new model, start with Lean's bundled libraries. Add Mathlib only when the selected theorem needs it. Pin a concrete Lean 4 version in `lean-toolchain`, retain the Lake configuration and generated dependency manifest, and ignore `.lake/` build artifacts. Confirm command availability against that version rather than assuming the moving `latest` documentation matches it.
 

@@ -1,17 +1,17 @@
 # Repository launcher
 
-Use this route for the Agent plugin in the `obsidian-plugins` pnpm repository. It requires the existing `plugins/agent/tests/e2e/support.ts` export `withAgent`. It is not a generic launcher for every plugin.
+Use this route for the `obsidian-agent` plugin repository. It requires the existing `tests/e2e/support.ts` export `withAgent`. It is not a generic launcher for other plugins.
 
 ## Prerequisites and launch
 
 Read the checkout's `AGENTS.md` and the shared harness, runtime, and filesystem isolation sections of `.agents/skills/e2e-testing/SKILL.md`. Its automated testcase authoring requirements do not require a new feature plan for exploratory computer use. Use the pinned development environment: Node.js 24, `playwright-core`, Obsidian, Bubblewrap, and Nix. The harness starts its own private headless compositor, so no host display is needed or used. Run commands from the repository root, inside `devenv shell` if the toolchain is not already active.
 
 ```bash
-pnpm --filter obsidian-agent build
-node .agents/skills/obsidian-computer-use/scripts/session.mts plugins/agent/tests/e2e/support.ts
+pnpm run build
+node .agents/skills/obsidian-computer-use/scripts/session.mts tests/e2e/support.ts
 ```
 
-The helper lives in this project's `.agents/skills/` directory. Its TypeScript check runs as part of `pnpm --filter obsidian-agent check:types`, included in the plugin's normal `check` command. Launch the second command in a persistent terminal with stdin available, for example `exec_command` with `tty: true` and a short yield. Retain its session ID and send subsequent JSON lines with `write_stdin`. Wait for the `ready` event before sending input. If the orchestrator yields an execution cell instead, resolve it before using the terminal session.
+The helper lives in this project's `.agents/skills/` directory. Its TypeScript check runs as part of `pnpm run check:types`, included in the plugin's normal `check` command. Launch the second command in a persistent terminal with stdin available, for example `exec_command` with `tty: true` and a short yield. Retain its session ID and send subsequent JSON lines with `write_stdin`. Wait for the `ready` event before sending input. If the orchestrator yields an execution cell instead, resolve it before using the terminal session.
 
 The helper prints its evidence directory immediately. Once ready, it prints the disposable vault, copied plugin directory, and screenshot path/dimensions. Use `view_image` or the available image-viewing tool to inspect each PNG. Evidence and the JSONL transcript remain in `/tmp/obsidian-computer-use-*` after the fixture cleans up its successful vault/profile. Failure diagnostics from the harness remain in a separate `/tmp/obsidian-agent-e2e-*` directory.
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Create a desktop plugin displayed as **Obsidian Agent**, with manifest ID `agent` in `plugins/agent/`. Obsidian [prohibits `obsidian` in manifest IDs](https://docs.obsidian.md/Reference/Manifest). The plugin will use [pi’s agent core](https://github.com/earendil-works/pi/blob/main/packages/agent/README.md) for the agent loop and streaming, while Obsidian owns the sidebar, vault operations, settings, and chat storage.
+Create a desktop plugin displayed as **Obsidian Agent**, with manifest ID `agent` in the repository root. Obsidian [prohibits `obsidian` in manifest IDs](https://docs.obsidian.md/Reference/Manifest). The plugin will use [pi’s agent core](https://github.com/earendil-works/pi/blob/main/packages/agent/README.md) for the agent loop and streaming, while Obsidian owns the sidebar, vault operations, settings, and chat storage.
 
 ## Implementation
 

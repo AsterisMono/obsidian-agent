@@ -1,8 +1,8 @@
 {
-  "extends": "../../../plugins/agent/tsconfig.json",
+  "extends": "../../../tsconfig.json",
   "compilerOptions": {
     "types": ["node"],
-    "typeRoots": ["../../../plugins/agent/node_modules/@types"]
+    "typeRoots": ["../../../node_modules/@types"]
   },
   "include": ["scripts/**/*.mts"]
 }

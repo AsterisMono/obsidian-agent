@@ -19,11 +19,11 @@ dist/
 coverage/
 
 # Obsidian plugin build output
-plugins/*/main.js
-plugins/*/main.js.map
+/main.js
+/main.js.map
 
 # Plugin data
-plugins/*/data.json
+/data.json
 
 # Lean build output
 .lake/

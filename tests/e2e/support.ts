@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium, type Browser, type Locator, type Page } from 'playwright-core';
 
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const repositoryRoot = path.resolve(pluginRoot, '../..');
+const repositoryRoot = pluginRoot;
 const displayRootPrefix = 'obsidian-e2e-display-';
 const defaultDisplaySize = '1280x800';
 

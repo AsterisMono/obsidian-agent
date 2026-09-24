@@ -172,9 +172,7 @@ for (const plan of plans) {
     writeFileSync(fixturePath, expected);
     console.log(`${plan.stem}: wrote ${String(model.cases.length)} model cases.`);
   } else if (!existsSync(fixturePath) || readFileSync(fixturePath, 'utf8') !== expected) {
-    throw new Error(
-      `Stale model fixtures for ${plan.stem}; run pnpm --filter obsidian-agent fixtures:lean.`,
-    );
+    throw new Error(`Stale model fixtures for ${plan.stem}; run pnpm run fixtures:lean.`);
   } else {
     console.log(`${plan.stem}: ${String(model.cases.length)} model cases and provenance match.`);
   }

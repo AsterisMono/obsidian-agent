@@ -1,7 +1,7 @@
 {
   "plan": "0002-formal-verification",
   "toolchain": "leanprover/lean4:v4.30.0",
-  "modelSourceSha256": "551d3d2ba156ebb5df7726652524c8bd4e5571527c47ddb3cdb86bd7ff90228b",
+  "modelSourceSha256": "6de4102717089f0220713ff3c28cbda6097d45e4bc41849a888fc9bda353426d",
   "cases": [
     {
       "contract": "V1-V5",

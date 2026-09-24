@@ -36,7 +36,7 @@ type Harness = {
 
 const harnessPath = process.argv[2];
 if (!harnessPath || !fs.statSync(harnessPath, { throwIfNoEntry: false })?.isFile()) {
-  throw new Error('Usage: node session.mts /absolute/path/to/plugins/agent/tests/e2e/support.ts');
+  throw new Error('Usage: node session.mts /absolute/path/to/tests/e2e/support.ts');
 }
 const artifacts = fs.mkdtempSync(path.join(os.tmpdir(), 'obsidian-computer-use-'));
 const transcript = path.join(artifacts, 'transcript.jsonl');

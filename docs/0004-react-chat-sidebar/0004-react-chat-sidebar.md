@@ -26,7 +26,7 @@ Replace the Chat Sidebar's imperative DOM rendering with a React view. Adapt the
 
 - One new desktop scenario at `tests/e2e/0004-react-chat-sidebar.test.ts` exercises the packaged plugin through real Obsidian: idle and populated layouts, searchable history and no-match state, model/thinking controls, draft retention across an update and an errored run, Enter and Shift+Enter, attachment/error behavior, streaming and Stop, and view reopen. It checks light and dark appearance and a narrow sidebar for overflow. Deterministic service responses cover delayed completion.
 - Existing `0001`, `0002`, and `0003` E2E scenarios remain passing, including cancellation, persistence, and reload cases.
-- `pnpm --filter obsidian-agent check`, `pnpm --filter obsidian-agent build`, `pnpm --filter obsidian-agent test`, and `pnpm check` pass. The packaged bundle loads without runtime `node_modules`.
+- `pnpm check`, `pnpm build`, `pnpm test`, and `pnpm check` pass. The packaged bundle loads without runtime `node_modules`.
 
 ## Lean applicability
 
@@ -43,10 +43,10 @@ Lean is not applicable to this change. It moves presentation and ephemeral UI st
 
 Verified from working tree based on `0c2e0fb` using Node.js 24 and packaged Obsidian 1.13.7 in disposable vaults.
 
-- `pnpm --filter obsidian-agent build`: passed; bundled `main.js` includes React and loaded without workspace `node_modules`.
+- `pnpm build`: passed; bundled `main.js` includes React and loaded without workspace `node_modules`.
 - `node tests/e2e/0004-react-chat-sidebar.test.ts`: passed the new scenario after the final draft-recovery and test updates.
-- `pnpm --filter obsidian-agent test`: passed all four desktop scenarios, including existing chat, verification, and OAuth regressions.
-- `pnpm --filter obsidian-agent check`: passed TypeScript and the existing Plan 0002 Lean build, transitive axiom audit (63 theorem declarations), and 20 model cases with matching provenance.
+- `pnpm test`: passed all four desktop scenarios, including existing chat, verification, and OAuth regressions.
+- `pnpm check`: passed TypeScript and the existing Plan 0002 Lean build, transitive axiom audit (63 theorem declarations), and 20 model cases with matching provenance.
 - `pnpm check`: passed workspace Prettier, ESLint, TypeScript, and Lean checks.
 - `git diff --check`: passed. A disposable-vault visual inspection checked the populated sidebar in light and dark themes and at 260 px.
 - An independent E2E author derived the scenario from this plan. An independent verifier rechecked the contract against implementation and tests after draft recovery and found no material mismatch.

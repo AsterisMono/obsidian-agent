@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const plugin = path.resolve(fileURLToPath(new URL('../', import.meta.url)));
-const workspace = path.resolve(plugin, '../..');
+const workspace = plugin;
 const rawVault = process.env.VAULT?.trim();
 const configuredVault =
   rawVault?.startsWith('"') && rawVault.endsWith('"') ? rawVault.slice(1, -1) : rawVault;

@@ -7,6 +7,6 @@ dist
 coverage
 devenv.lock
 pnpm-lock.yaml
-plugins/*/main.js
-plugins/*/main.js.map
+/main.js
+/main.js.map
 .lake
