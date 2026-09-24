@@ -63,6 +63,8 @@ export type ModelStream = {
 };
 
 export type AgentFixtureOptions = {
+  signal?: AbortSignal;
+  preserveArtifacts?: boolean;
   data?: Record<string, unknown>;
   prepareVault?: (paths: TestPaths) => void | Promise<void>;
   modelHandler?: (request: ModelRequest, stream: ModelStream) => void | Promise<void>;
@@ -435,7 +437,10 @@ function sandboxArgs(paths: TestPaths, debugPort: number, display: HeadlessDispl
   const binary = resolveObsidian();
   const storeRoot = binary.match(/^\/nix\/store\/[^/]+/)?.[0];
   if (!storeRoot) throw new Error('The E2E sandbox requires a Nix-store Obsidian executable.');
-  const closure = execFileSync('nix-store', ['-qR', storeRoot], { encoding: 'utf8' })
+  const closure = execFileSync('nix-store', ['-qR', storeRoot], {
+    encoding: 'utf8',
+    timeout: 30000,
+  })
     .trim()
     .split('\n');
   const bash = closure.find((item) => fs.existsSync(path.join(item, 'bin/bash')));
@@ -546,7 +551,7 @@ function sandboxArgs(paths: TestPaths, debugPort: number, display: HeadlessDispl
       fontsConf,
       ...fontDirs,
     ],
-    { encoding: 'utf8' },
+    { encoding: 'utf8', timeout: 30000 },
   );
   if (visibilityCheck.status !== 0) {
     throw new Error(
@@ -570,8 +575,10 @@ async function waitForCdp(
   port: number,
   child: ChildProcess,
   spawnError: () => Error | undefined,
+  signal?: AbortSignal,
 ): Promise<void> {
   for (let i = 0; i < 150; i++) {
+    signal?.throwIfAborted();
     const error = spawnError();
     if (error) throw error;
     if (child.exitCode !== null || child.signalCode !== null) {
@@ -579,9 +586,11 @@ async function waitForCdp(
         `Obsidian exited before CDP started (code ${String(child.exitCode)}, signal ${String(child.signalCode)}).`,
       );
     }
-    const response = await fetch(`http://127.0.0.1:${String(port)}/json/version`).catch(
-      () => undefined,
-    );
+    const response = await fetch(`http://127.0.0.1:${String(port)}/json/version`, {
+      signal: signal
+        ? AbortSignal.any([signal, AbortSignal.timeout(1000)])
+        : AbortSignal.timeout(1000),
+    }).catch(() => undefined);
     if (response?.ok) return;
     await wait(200);
   }
@@ -639,13 +648,19 @@ export async function withAgent(
   let browser: Browser | undefined;
   let page: Page | undefined;
   let passed = false;
+  const cancel = () => {
+    if (child?.pid) signalProcessGroup(child.pid, 'SIGKILL');
+  };
+  options.signal?.addEventListener('abort', cancel, { once: true });
   try {
+    options.signal?.throwIfAborted();
     server = modelServer(requests, events, options.modelHandler);
     const modelPort = await listen(server);
     writeVault(paths, modelPort, options.data);
     await options.prepareVault?.(paths);
     const debugPort = await unusedPort();
     const display = await headlessDisplay();
+    options.signal?.throwIfAborted();
     child = spawn('bwrap', sandboxArgs(paths, debugPort, display), {
       detached: true,
       stdio: ['ignore', 'ignore', 'pipe'],
@@ -657,12 +672,16 @@ export async function withAgent(
     child.stderr?.on('data', (chunk) => {
       stderr += String(chunk);
     });
-    await waitForCdp(debugPort, child, () => spawnError);
-    browser = await chromium.connectOverCDP(`http://127.0.0.1:${String(debugPort)}`);
+    await waitForCdp(debugPort, child, () => spawnError, options.signal);
+    browser = await chromium.connectOverCDP(`http://127.0.0.1:${String(debugPort)}`, {
+      timeout: 30000,
+    });
     const context = browser.contexts()[0];
     for (let i = 0; i < 100 && context.pages().length === 0; i++) await wait(200);
     page = context.pages().find((item) => item.url().startsWith('app://')) || context.pages()[0];
     assert.ok(page, 'Obsidian window did not open');
+    page.setDefaultTimeout(15000);
+    page.setDefaultNavigationTimeout(15000);
     page.on('pageerror', (error) => {
       pageErrors.push(error.message);
     });
@@ -691,7 +710,7 @@ export async function withAgent(
   } catch (error) {
     if (page)
       await page
-        .screenshot({ path: path.join(paths.root, `${label}-failure.png`) })
+        .screenshot({ path: path.join(paths.root, `${label}-failure.png`), timeout: 5000 })
         .catch(() => undefined);
     console.error(`E2E artifacts: ${paths.root}`);
     console.error(`Obsidian stderr: ${stderr.slice(-2000)}`);
@@ -700,7 +719,8 @@ export async function withAgent(
     console.error(`Fixture events: ${events.slice(-15).join(' | ')}`);
     throw error;
   } finally {
-    await browser?.close().catch(() => undefined);
+    options.signal?.removeEventListener('abort', cancel);
+    await Promise.race([browser?.close().catch(() => undefined), wait(3000)]);
     if (child?.pid) {
       signalProcessGroup(child.pid, 'SIGTERM');
       await wait(500);
@@ -715,6 +735,12 @@ export async function withAgent(
         });
       });
     }
-    if (passed) fs.rmSync(paths.root, { recursive: true, force: true });
+    if (passed && !options.preserveArtifacts)
+      fs.rmSync(paths.root, { recursive: true, force: true });
+    else
+      fs.writeFileSync(
+        path.join(paths.root, 'diagnostics.json'),
+        JSON.stringify({ stderr, pageErrors, events, requests }, null, 2),
+      );
   }
 }

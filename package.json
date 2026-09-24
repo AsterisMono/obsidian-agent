@@ -16,8 +16,9 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts",
-    "vision": "node scripts/vision-run.ts"
+    "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts tests/tooling/vision-desktop.test.ts",
+    "vision": "node scripts/vision-run.ts",
+    "test:vision": "node --test tests/tooling/vision.test.ts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.87.0",

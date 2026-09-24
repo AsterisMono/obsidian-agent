@@ -30,5 +30,8 @@ jobs:
     name: Vision
     needs: [regular, lean, e2e]
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
     uses: ./.github/workflows/vision.yml
-    secrets: inherit
+    secrets:
+      OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}

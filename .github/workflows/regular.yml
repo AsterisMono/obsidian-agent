@@ -24,3 +24,5 @@ jobs:
         run: devenv shell -- pnpm install --frozen-lockfile
       - name: Run checks
         run: devenv shell -- pnpm run check:regular
+      - name: Check vision runner safeguards
+        run: devenv shell -- pnpm test:vision
