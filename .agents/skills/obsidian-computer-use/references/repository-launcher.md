@@ -11,7 +11,7 @@ pnpm --filter obsidian-agent build
 node .agents/skills/obsidian-computer-use/scripts/session.mts plugins/agent/tests/e2e/support.ts
 ```
 
-The helper lives in this project's `.agents/skills/` directory. Its TypeScript check runs through `pnpm --filter obsidian-agent check:computer-use`, included in the plugin's normal `check` command. Launch the second command in a persistent terminal with stdin available, for example `exec_command` with `tty: true` and a short yield. Retain its session ID and send subsequent JSON lines with `write_stdin`. Wait for the `ready` event before sending input. If the orchestrator yields an execution cell instead, resolve it before using the terminal session.
+The helper lives in this project's `.agents/skills/` directory. Its TypeScript check runs as part of `pnpm --filter obsidian-agent check:types`, included in the plugin's normal `check` command. Launch the second command in a persistent terminal with stdin available, for example `exec_command` with `tty: true` and a short yield. Retain its session ID and send subsequent JSON lines with `write_stdin`. Wait for the `ready` event before sending input. If the orchestrator yields an execution cell instead, resolve it before using the terminal session.
 
 The helper prints its evidence directory immediately. Once ready, it prints the disposable vault, copied plugin directory, and screenshot path/dimensions. Use `view_image` or the available image-viewing tool to inspect each PNG. Evidence and the JSONL transcript remain in `/tmp/obsidian-computer-use-*` after the fixture cleans up its successful vault/profile. Failure diagnostics from the harness remain in a separate `/tmp/obsidian-agent-e2e-*` directory.
 

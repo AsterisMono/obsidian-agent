@@ -4,11 +4,15 @@
   "scripts": {
     "build": "pnpm -r --if-present run build",
     "check": "pnpm run format:check && pnpm run lint && pnpm -r --if-present run check",
+    "check:lean": "pnpm -r --if-present run check:lean",
+    "check:regular": "pnpm run format:check && pnpm run lint && pnpm run check:types",
+    "check:types": "pnpm -r --if-present run check:types",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "pnpm -r --if-present run test"
+    "test": "pnpm -r --if-present run test",
+    "vision": "pnpm -r --if-present run vision"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

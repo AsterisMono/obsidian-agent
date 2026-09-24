@@ -6,7 +6,7 @@ in
 {
   dotenv.enable = true;
 
-  packages = with pkgs; [ git github-cli obsidian bubblewrap lean4 ];
+  packages = with pkgs; [ actionlint git github-cli obsidian bubblewrap lean4 ];
 
   env = {
     OBSIDIAN_E2E_COMPOSITOR = "${pkgs.sway}/bin/sway";

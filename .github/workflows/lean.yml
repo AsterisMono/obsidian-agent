@@ -1,0 +1,25 @@
+name: Lean
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  lean:
+    name: Proofs and model cases
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+      - uses: cachix/cachix-action@v17
+        with:
+          name: devenv
+      - name: Install devenv
+        run: nix profile add nixpkgs#devenv
+      # check:lean uses Node builtins and Lake only, so no pnpm install is needed.
+      - name: Build proofs, audit axioms, and verify model cases
+        run: devenv shell -- pnpm run check:lean

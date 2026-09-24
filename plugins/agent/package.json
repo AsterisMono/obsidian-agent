@@ -7,11 +7,12 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "build:link": "node scripts/build-and-link.ts",
-    "check": "tsc --noEmit && pnpm run check:computer-use && pnpm run check:lean",
-    "check:computer-use": "tsc --noEmit --project ../../.agents/skills/obsidian-computer-use/tsconfig.json",
+    "check": "pnpm run check:types && pnpm run check:lean",
     "check:lean": "node scripts/check-lean.ts",
+    "check:types": "tsc --noEmit && tsc --noEmit --project ../../.agents/skills/obsidian-computer-use/tsconfig.json",
     "fixtures:lean": "node scripts/check-lean.ts --write-fixtures",
-    "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts"
+    "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts",
+    "vision": "node scripts/vision-run.ts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.87.0",
