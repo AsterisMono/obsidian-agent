@@ -5,19 +5,19 @@ description: Reconcile AGENTS.md and README.md with project skills, plans, and r
 
 # Update Project Docs
 
-Keep AGENTS.md and README.md concise, with references to maintained skills or other docs for detail. Give each document a `Last updated at` commit marker.
+Keep AGENTS.md and README.md concise. References to important files, skills, or other docs are optional; use them where they help the reader. Give each document a `Last updated at` commit marker.
 
 ## Establish what changed
 
-Read both documents and their revision markers. Review project skills under `.agents/skills/`, relevant plans under `docs/`, recent commits, and the working-tree diff. Use each valid marker to compare changes since that document was last reviewed; if it is missing or unavailable in local history, review the relevant history and files directly.
+Read both documents and their revision markers. Review project skills under `.agents/skills/`, relevant plans under `docs/`, recent commits, and the working-tree diff. Use each valid marker to compare changes since that document was last reviewed; if it is missing or unavailable in local history, review the relevant history and files directly. When recomposing AGENTS.md, inspect its earlier revisions for important standing rules lost through previous edits; retain those that still apply without restoring obsolete project descriptions.
 
 Skills describe how contributors work; plans describe intended behavior. Confirm claims about available features, installation, commands, and support against the implementation, manifests, and configuration. Do not present a proposal or an old verification record as a shipped feature or a new passing check. Preserve unrelated work already in progress.
 
 ## AGENTS.md: durable guidance
 
-Keep only common knowledge that remains useful across ordinary project changes and short references to the skills that own the work.
+Keep common knowledge and standing project-wide rules that remain useful across ordinary changes, such as language constraints, commit conventions, environment policy, and testing or lifecycle requirements. State important rules directly in AGENTS.md. It may reference important files and skills, but need not be a reference list.
 
-- Move workflows, procedures, checklists, and reusable task instructions into the appropriate project skill. Replace them with a brief reference, preserving the original requirements in the destination.
+- Move workflows, procedures, checklists, and detailed task instructions into the appropriate project skill, preserving their requirements. Add a brief reference when useful. Do not extract a standing rule merely because it could also appear in a skill.
 - Remove snapshots of code or documentation: directory inventories, current architecture, tool versions, feature status, and descriptions of what files currently contain.
 - Prefer an existing skill over a duplicate. If a new skill is needed, keep it scoped to the extracted task. Repair references affected by the move, including skills that previously sent readers to AGENTS.md or README.md for those details.
 
@@ -31,4 +31,4 @@ Link to setup details, contributor guidance, or specialist docs when needed. Kee
 
 Use a footer in each document: ``Last updated at: `<full commit hash>`.`` Resolve the hash with `git rev-parse HEAD` after reviewing that revision. It records the project revision reviewed, not the commit containing the documentation edit; do not amend repeatedly to chase a self-referential hash. When including current working-tree changes, retain this committed baseline and identify those changes in the delivery summary. Never advance a marker past changes actually reviewed.
 
-Check local links, commands, feature claims, formatting, and preservation of extracted requirements. Confirm both documents serve their intended readers without duplicating the skills. For documentation-only changes, use document and skill validation; plugin behavior changes follow [Land Changes](../land-changes/SKILL.md). Report the documents updated, the reviewed revision, and any unresolved discrepancies.
+Check local links, commands, feature claims, formatting, preservation of extracted requirements, and retention of important standing rules. Confirm both documents serve their intended readers without duplicating detailed skill procedures. For documentation-only changes, use document and skill validation; plugin behavior changes follow [Land Changes](../land-changes/SKILL.md). Report the documents updated, the reviewed revision, and any unresolved discrepancies.

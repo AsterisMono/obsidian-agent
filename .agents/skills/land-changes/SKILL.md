@@ -11,9 +11,7 @@ Follow this sequence for every change that lands in this repository, including f
 
 Respect the user's requested scope. A request to land a change authorizes progressing through the applicable stages; do not add approval pauses between them. A planning request produces the plan and its Lean artifacts, while implementation and desktop regression remain subsequent work. Pure documentation or tooling changes with no plugin behavior change do not require inventing a plugin feature or desktop scenario.
 
-## Repository conventions
-
-Write repository scripts in TypeScript (`.ts`, `.mts`, or `.cts`), never JavaScript (`.js`, `.mjs`, or `.cjs`). Run them with the repository's Node.js runtime and include them in its TypeScript checks. Comments are banned in TypeScript sources and scripts; use the configured Prettier and strict type-checked ESLint rules. Plugin behavior tests are E2E only.
+Follow the standing repository rules in [AGENTS.md](../../../AGENTS.md).
 
 When a change affects repository guidance or user documentation, apply [Update Project Docs](../update-project-docs/SKILL.md).
 
