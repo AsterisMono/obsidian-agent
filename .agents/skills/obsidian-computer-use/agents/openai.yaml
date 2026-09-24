@@ -1,0 +1,3 @@
+interface:
+  display_name: 'Obsidian Computer Use'
+  short_description: 'Test Obsidian behavior with screenshots and clicks'

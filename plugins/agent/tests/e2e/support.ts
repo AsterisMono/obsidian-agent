@@ -9,6 +9,18 @@ import { chromium, type Browser, type Locator, type Page } from 'playwright-core
 
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const repositoryRoot = path.resolve(pluginRoot, '../..');
+const displayRootPrefix = 'obsidian-e2e-display-';
+const defaultDisplaySize = '1280x800';
+
+type HeadlessDisplay = {
+  root: string;
+  runtimeDir: string;
+  displayName: string;
+  socketPath: string;
+  process: ChildProcess;
+};
+
+let displayPromise: Promise<HeadlessDisplay> | undefined;
 
 export type ModelRequest = {
   model: string;
@@ -267,6 +279,146 @@ function modelServer(
   });
 }
 
+function resolveCompositor(): string {
+  const override = process.env.OBSIDIAN_E2E_COMPOSITOR;
+  const candidates = override
+    ? [path.resolve(override)]
+    : (process.env.PATH || '')
+        .split(path.delimiter)
+        .filter((directory) => directory.length > 0)
+        .map((directory) => path.join(directory, 'sway'));
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!found)
+    throw new Error(
+      'Headless compositor not found. Set OBSIDIAN_E2E_COMPOSITOR or run inside devenv.',
+    );
+  return fs.realpathSync(found);
+}
+
+function displaySize(): { width: number; height: number } {
+  const value = process.env.OBSIDIAN_E2E_DISPLAY_SIZE || defaultDisplaySize;
+  const match = /^(\d{3,5})x(\d{3,5})$/.exec(value);
+  if (!match) throw new Error(`Invalid OBSIDIAN_E2E_DISPLAY_SIZE: ${value}`);
+  return { width: Number(match[1]), height: Number(match[2]) };
+}
+
+function resolveFontDirs(): string[] {
+  return (process.env.OBSIDIAN_E2E_FONTS || '')
+    .split(path.delimiter)
+    .filter((entry) => entry.length > 0)
+    .map((entry) => path.resolve(entry))
+    .filter((entry) => fs.existsSync(entry));
+}
+
+function compositorConfig(): string {
+  const { width, height } = displaySize();
+  return [
+    `output HEADLESS-1 resolution ${String(width)}x${String(height)}`,
+    'default_border none',
+    'default_floating_border none',
+    'for_window [app_id="(?i)obsidian"] floating enable',
+    `for_window [app_id="(?i)obsidian"] resize set ${String(width)} ${String(height)}`,
+    'for_window [app_id="(?i)obsidian"] move position 0 0',
+    '',
+  ].join('\n');
+}
+
+function tailFile(file: string): string {
+  try {
+    return fs.readFileSync(file, 'utf8').slice(-2000);
+  } catch {
+    return 'no compositor log';
+  }
+}
+
+async function startHeadlessDisplay(): Promise<HeadlessDisplay> {
+  const compositor = resolveCompositor();
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), displayRootPrefix));
+  const runtimeDir = path.join(root, 'runtime');
+  fs.mkdirSync(runtimeDir, { recursive: true, mode: 0o700 });
+  const configPath = path.join(root, 'sway.conf');
+  fs.writeFileSync(configPath, compositorConfig());
+  const logPath = path.join(root, 'compositor.log');
+  const log = fs.openSync(logPath, 'w');
+  let spawnError: Error | undefined;
+  const child = spawn(compositor, ['-c', configPath], {
+    detached: true,
+    stdio: ['ignore', 'ignore', log],
+    env: {
+      HOME: root,
+      XDG_RUNTIME_DIR: runtimeDir,
+      XDG_CONFIG_HOME: path.join(root, 'config'),
+      XDG_DATA_HOME: path.join(root, 'data'),
+      XDG_CACHE_HOME: path.join(root, 'cache'),
+      SWAYSOCK: path.join(runtimeDir, 'sway-ipc.sock'),
+      WLR_BACKENDS: 'headless',
+      WLR_RENDERER: 'pixman',
+      WLR_LIBINPUT_NO_DEVICES: '1',
+      PATH: process.env.PATH ?? '',
+    },
+  });
+  child.on('error', (error) => {
+    spawnError = error;
+  });
+  child.unref();
+  fs.closeSync(log);
+  const stop = () => {
+    const running = child.exitCode === null && child.signalCode === null;
+    if (child.pid) signalProcessGroup(child.pid, 'SIGKILL');
+    if (running) fs.rmSync(root, { recursive: true, force: true });
+  };
+  process.once('exit', stop);
+  process.once('SIGINT', () => {
+    stop();
+    process.exit(130);
+  });
+  process.once('SIGTERM', () => {
+    stop();
+    process.exit(143);
+  });
+  for (let i = 0; i < 200; i++) {
+    if (spawnError) throw spawnError;
+    if (child.exitCode !== null || child.signalCode !== null)
+      throw new Error(`Headless compositor exited before opening its socket: ${tailFile(logPath)}`);
+    const displayName = fs.readdirSync(runtimeDir).find((entry) => /^wayland-\d+$/.test(entry));
+    if (displayName)
+      return {
+        root,
+        runtimeDir,
+        displayName,
+        socketPath: path.join(runtimeDir, displayName),
+        process: child,
+      };
+    await wait(100);
+  }
+  throw new Error(`Headless compositor did not open a Wayland socket: ${tailFile(logPath)}`);
+}
+
+function headlessDisplay(): Promise<HeadlessDisplay> {
+  displayPromise ??= startHeadlessDisplay();
+  return displayPromise;
+}
+
+function writeFontConfig(paths: TestPaths, fontconfig: string, fontDirs: string[]): string {
+  const directory = path.join(paths.root, 'fontconfig');
+  fs.mkdirSync(directory, { recursive: true });
+  const file = path.join(directory, 'fonts.conf');
+  fs.writeFileSync(
+    file,
+    [
+      '<?xml version="1.0"?>',
+      '<!DOCTYPE fontconfig SYSTEM "urn:fontconfig:fonts.dtd">',
+      '<fontconfig>',
+      `  <include ignore_missing="yes">${fontconfig}/etc/fonts/fonts.conf</include>`,
+      `  <include ignore_missing="yes">${fontconfig}/etc/fonts/conf.d</include>`,
+      ...fontDirs.map((entry) => `  <dir>${entry}</dir>`),
+      '</fontconfig>',
+      '',
+    ].join('\n'),
+  );
+  return file;
+}
+
 function resolveObsidian(): string {
   const executable = process.env.OBSIDIAN_EXECUTABLE || 'obsidian';
   const candidates = executable.includes('/')
@@ -279,7 +431,7 @@ function resolveObsidian(): string {
   return fs.realpathSync(found);
 }
 
-function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
+function sandboxArgs(paths: TestPaths, debugPort: number, display: HeadlessDisplay): string[] {
   const binary = resolveObsidian();
   const storeRoot = binary.match(/^\/nix\/store\/[^/]+/)?.[0];
   if (!storeRoot) throw new Error('The E2E sandbox requires a Nix-store Obsidian executable.');
@@ -289,15 +441,9 @@ function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
   const bash = closure.find((item) => fs.existsSync(path.join(item, 'bin/bash')));
   const fontconfig = closure.find((item) => fs.existsSync(path.join(item, 'etc/fonts/fonts.conf')));
   if (!bash || !fontconfig) throw new Error('Obsidian Nix closure is missing Bash or fontconfig.');
-  const displayName = process.env.WAYLAND_DISPLAY;
-  const runtimeHost = process.env.XDG_RUNTIME_DIR;
-  if (!displayName || !runtimeHost)
-    throw new Error('A Wayland display is required for isolated E2E tests.');
-  const displaySocket = path.isAbsolute(displayName)
-    ? displayName
-    : path.join(runtimeHost, displayName);
-  if (!fs.existsSync(displaySocket)) throw new Error(`Wayland socket not found: ${displaySocket}`);
-  const sandboxSocket = path.join(paths.runtime, path.basename(displayName));
+  const fontDirs = resolveFontDirs();
+  const fontsConf = writeFontConfig(paths, fontconfig, fontDirs);
+  const sandboxSocket = path.join(paths.runtime, display.displayName);
   const runtimePath = closure
     .filter((item) => fs.existsSync(path.join(item, 'bin')))
     .map((item) => path.join(item, 'bin'))
@@ -319,8 +465,9 @@ function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
     '/nix/store',
     ...closure.flatMap((item) => ['--ro-bind', item, item]),
     '--ro-bind',
-    displaySocket,
+    display.socketPath,
     sandboxSocket,
+    ...fontDirs.flatMap((directory) => ['--ro-bind', directory, directory]),
     '--dev',
     '/dev',
     '--proc',
@@ -346,7 +493,7 @@ function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
     paths.runtime,
     '--setenv',
     'WAYLAND_DISPLAY',
-    path.basename(displayName),
+    display.displayName,
     '--setenv',
     'TMPDIR',
     paths.temp,
@@ -355,7 +502,7 @@ function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
     runtimePath,
     '--setenv',
     'FONTCONFIG_FILE',
-    path.join(fontconfig, 'etc/fonts/fonts.conf'),
+    fontsConf,
     '--setenv',
     'FONTCONFIG_PATH',
     path.join(fontconfig, 'etc/fonts'),
@@ -381,12 +528,23 @@ function sandboxArgs(paths: TestPaths, debugPort: number): string[] {
       '--',
       path.join(bash, 'bin/bash'),
       '-c',
-      'test ! -e "$1" && test ! -e /etc/passwd && test ! -e /home && test -e "$2" && test -d "$3" && test -S "$4"',
+      [
+        'test ! -e "$1"',
+        'test ! -e /etc/passwd',
+        'test ! -e /home',
+        'test -e "$2"',
+        'test -d "$3"',
+        'test -S "$4"',
+        'test -f "$5"',
+        'for directory in "${@:6}"; do test -d "$directory" || exit 1; done',
+      ].join(' && '),
       'sandbox-check',
       path.join(repositoryRoot, 'AGENTS.md'),
       binary,
       paths.vault,
       sandboxSocket,
+      fontsConf,
+      ...fontDirs,
     ],
     { encoding: 'utf8' },
   );
@@ -487,7 +645,8 @@ export async function withAgent(
     writeVault(paths, modelPort, options.data);
     await options.prepareVault?.(paths);
     const debugPort = await unusedPort();
-    child = spawn('bwrap', sandboxArgs(paths, debugPort), {
+    const display = await headlessDisplay();
+    child = spawn('bwrap', sandboxArgs(paths, debugPort, display), {
       detached: true,
       stdio: ['ignore', 'ignore', 'pipe'],
     });

@@ -1,9 +1,17 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
+let
+  e2eFonts = with pkgs; [ dejavu_fonts noto-fonts noto-fonts-color-emoji noto-fonts-cjk-sans ];
+in
 {
   dotenv.enable = true;
 
-  packages = [ pkgs.git pkgs.obsidian pkgs.bubblewrap pkgs.lean4 ];
+  packages = with pkgs; [ git github-cli obsidian bubblewrap lean4 ];
+
+  env = {
+    OBSIDIAN_E2E_COMPOSITOR = "${pkgs.sway}/bin/sway";
+    OBSIDIAN_E2E_FONTS = lib.concatMapStringsSep ":" (font: "${font}/share/fonts") e2eFonts;
+  };
 
   languages.javascript = {
     enable = true;

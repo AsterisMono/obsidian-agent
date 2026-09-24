@@ -1,0 +1,3 @@
+interface:
+  display_name: 'Exploratory Vision Testing'
+  short_description: 'Explore plugins, validate bugs, and file GitHub issues'

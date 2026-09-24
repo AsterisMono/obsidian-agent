@@ -7,7 +7,8 @@
     "dev": "node esbuild.config.mjs",
     "build": "node esbuild.config.mjs production",
     "build:link": "node scripts/build-and-link.ts",
-    "check": "tsc --noEmit && pnpm run check:lean",
+    "check": "tsc --noEmit && pnpm run check:computer-use && pnpm run check:lean",
+    "check:computer-use": "tsc --noEmit --project ../../.agents/skills/obsidian-computer-use/tsconfig.json",
     "check:lean": "node scripts/check-lean.ts",
     "fixtures:lean": "node scripts/check-lean.ts --write-fixtures",
     "test": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts"
