@@ -1,6 +1,6 @@
 ---
 name: obsidian-plugin-development
-description: Build, extend, and debug Obsidian plugins in this pnpm monorepo, including plugin scaffolding, API integration, bundling, and test-vault verification. Use for work on plugin code and build configuration, not ordinary vault note editing.
+description: Build, extend, and debug this Obsidian plugin, including API integration, bundling, and test-vault verification. Use for work on plugin code and build configuration, not ordinary vault note editing.
 ---
 
 # Obsidian Plugin Development
@@ -9,7 +9,7 @@ Deliver a plugin that Obsidian can load from this repository. Follow the root `A
 
 ## Workspace and build
 
-- Read the root `package.json`, `manifest.json`, and the source before changing the build or plugin setup. The root `README.md` describes the devenv toolchain and development vault workflow.
+- Read the root `package.json`, `manifest.json`, and the source before changing the build or plugin setup. Use the [development guide](../../../docs/development.md) for the devenv toolchain and development vault setup.
 - This repository is one Obsidian plugin: `manifest.json`, the bundled `main.js`, and `styles.css` sit at the repository root, with sources under `src/`. Run `pnpm install` from the repository root and retain the lockfile.
 - For a new plugin, use TypeScript with a default export extending `Plugin`. Start with `src/main.ts`, `manifest.json`, a plugin `package.json`, TypeScript configuration, and a bundler configuration. Add settings, views, CSS, and other files when the feature needs them.
 - Adapt the [official sample build](https://github.com/obsidianmd/obsidian-sample-plugin/blob/master/esbuild.config.mjs) for this repository. Bundle to CommonJS `main.js` beside `manifest.json`. Externalize `obsidian`, Electron, Node built-ins, and the CodeMirror/Lezer modules supplied by Obsidian, following the sample's explicit list. Bundle other runtime dependencies so installation does not require `node_modules`.
@@ -34,15 +34,15 @@ Tie resources to their actual lifetime. View resources should end when the view 
 
 Choose the operation that preserves the user's current document state. Prefer the [Vault API](https://docs.obsidian.md/Plugins/Vault); reserve the adapter for files the Vault API cannot access, such as hidden configuration files.
 
-| Task | Approach |
-| --- | --- |
-| Change text in the active editor | Use the supplied `Editor` and targeted edits such as `replaceSelection` or `replaceRange`. |
-| Read a note for display or analysis | Use `vault.cachedRead(file)`. |
-| Transform a file in the background | Use `vault.process(file, current => updated)` with a synchronous callback. |
-| Change frontmatter | Use `fileManager.processFrontMatter`. |
-| Rename while respecting link settings | Use `fileManager.renameFile`. |
-| Delete according to the user's trash preference | Use `fileManager.trashFile`. |
-| Resolve a known path | Normalize vault-relative paths and look them up directly; handle missing files and narrow `TAbstractFile` to `TFile` or `TFolder`. |
+| Task                                            | Approach                                                                                                                           |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Change text in the active editor                | Use the supplied `Editor` and targeted edits such as `replaceSelection` or `replaceRange`.                                         |
+| Read a note for display or analysis             | Use `vault.cachedRead(file)`.                                                                                                      |
+| Transform a file in the background              | Use `vault.process(file, current => updated)` with a synchronous callback.                                                         |
+| Change frontmatter                              | Use `fileManager.processFrontMatter`.                                                                                              |
+| Rename while respecting link settings           | Use `fileManager.renameFile`.                                                                                                      |
+| Delete according to the user's trash preference | Use `fileManager.trashFile`.                                                                                                       |
+| Resolve a known path                            | Normalize vault-relative paths and look them up directly; handle missing files and narrow `TAbstractFile` to `TFile` or `TFolder`. |
 
 For a transformation requiring asynchronous computation, read a snapshot, compute the result, then compare the current content with that snapshot inside `vault.process`. On mismatch, report the conflict or recompute with a bounded retry; do not overwrite newer edits. `normalizePath` normalizes separators and formatting, so validate any feature-specific path restrictions separately.
 
