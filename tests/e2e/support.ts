@@ -5,12 +5,21 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { App } from 'obsidian';
 import { chromium, type Browser, type Locator, type Page } from 'playwright-core';
 
 const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const repositoryRoot = pluginRoot;
 const displayRootPrefix = 'obsidian-e2e-display-';
 const defaultDisplaySize = '1280x800';
+const pluginRibbon = '[aria-label="Open Obsidian Agent"]';
+
+declare global {
+  interface Window {
+    app: App;
+    e2eReloadMarker?: string;
+  }
+}
 
 type HeadlessDisplay = {
   root: string;
@@ -109,6 +118,20 @@ function parseSavedData(text: string): SavedData {
   return parsed;
 }
 
+const sleepCell = new Int32Array(new SharedArrayBuffer(4));
+
+function readSavedData(paths: TestPaths): SavedData {
+  const file = path.join(paths.pluginDir, 'data.json');
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return parseSavedData(fs.readFileSync(file, 'utf8'));
+    } catch (error) {
+      if (attempt >= 20) throw error;
+      Atomics.wait(sleepCell, 0, 0, 50);
+    }
+  }
+}
+
 function signalProcessGroup(pid: number, signal: NodeJS.Signals): boolean {
   try {
     process.kill(-pid, signal);
@@ -145,6 +168,90 @@ function createPaths(): TestPaths {
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function rendererMarker(page: Page): Promise<string | undefined> {
+  return page.evaluate(() => window.e2eReloadMarker ?? '').catch(() => undefined);
+}
+
+async function documentReloaded(page: Page, marker: string, timeout: number): Promise<boolean> {
+  const deadline = Date.now() + timeout;
+  for (;;) {
+    const current = await rendererMarker(page);
+    const workspace = await page
+      .locator('.workspace')
+      .waitFor({ timeout: 1000 })
+      .then(() => true)
+      .catch(() => false);
+    if (current !== undefined && current !== marker && workspace) return true;
+    if (Date.now() >= deadline) return false;
+    await wait(250);
+  }
+}
+
+async function requestAppReload(page: Page): Promise<void> {
+  await page
+    .evaluate(() => {
+      const commands: unknown = Reflect.get(window.app, 'commands');
+      if (typeof commands !== 'object' || commands === null) return false;
+      const execute: unknown = Reflect.get(commands, 'executeCommandById');
+      if (typeof execute !== 'function') return false;
+      return Reflect.apply(execute, commands, ['app:reload']) === true;
+    })
+    .catch(() => undefined);
+}
+
+export async function reloadApp(page: Page): Promise<void> {
+  const pluginLoaded = await page
+    .locator(pluginRibbon)
+    .count()
+    .then((count) => count > 0)
+    .catch(() => false);
+  const mechanisms = pluginLoaded
+    ? ['command', 'driver', 'command']
+    : ['driver', 'command', 'driver'];
+  for (const [attempt, mechanism] of mechanisms.entries()) {
+    const marker = `reload-${String(attempt)}-${String(Date.now())}`;
+    const marked = await page
+      .evaluate((value: string) => {
+        window.e2eReloadMarker = value;
+      }, marker)
+      .then(() => true)
+      .catch(() => false);
+    if (!marked) {
+      await page
+        .locator('.workspace')
+        .waitFor({ timeout: 20000 })
+        .catch(() => undefined);
+      continue;
+    }
+    if (mechanism === 'command') {
+      await requestAppReload(page);
+    } else {
+      await page.reload({ waitUntil: 'commit', timeout: 30000 }).catch((error: unknown) => {
+        if (!/(ERR_ABORTED|frame was detached|Timeout)/.test(String(error))) throw error;
+      });
+    }
+    if (await documentReloaded(page, marker, 20000)) return;
+  }
+  throw new Error('Obsidian renderer did not reload.');
+}
+
+async function describePage(page: Page | undefined, browser: Browser | undefined) {
+  return {
+    url: page?.url(),
+    closed: page?.isClosed(),
+    ready: await page
+      ?.evaluate(() => ({
+        ready: document.readyState,
+        workspace: document.querySelectorAll('.workspace').length,
+      }))
+      .catch((reason: unknown) => String(reason)),
+    pages: browser
+      ?.contexts()[0]
+      ?.pages()
+      .map((entry) => entry.url()),
+  };
 }
 
 async function listen(server: http.Server): Promise<number> {
@@ -613,8 +720,7 @@ function fixture(
 ): AgentFixture {
   const view = () => page.locator('.agent-view');
   const openSidebar = async () => {
-    if ((await view().count()) === 0)
-      await page.locator('[aria-label="Open Obsidian Agent"]').click();
+    if ((await view().count()) === 0) await page.locator(pluginRibbon).click();
     await view().waitFor();
   };
   return {
@@ -636,8 +742,7 @@ function fixture(
       await view().getByRole('button', { name: 'Send' }).click();
       await view().getByRole('button', { name: 'Send' }).waitFor({ timeout: 15000 });
     },
-    savedData: () =>
-      parseSavedData(fs.readFileSync(path.join(paths.pluginDir, 'data.json'), 'utf8')),
+    savedData: () => readSavedData(paths),
   };
 }
 
@@ -700,8 +805,7 @@ export async function withAgent(
     await page.evaluate(() => {
       localStorage.setItem('language', 'en');
     });
-    await page.reload();
-    await page.locator('.workspace').waitFor({ timeout: 60000 });
+    await reloadApp(page);
     assert.match(
       await page.evaluate(() => navigator.language),
       /^en\b/i,
@@ -712,10 +816,11 @@ export async function withAgent(
     await trust.waitFor({ timeout: 15000 });
     await trust.click();
     await page.getByText('Create new note').first().waitFor({ timeout: 10000 });
-    await page.locator('[aria-label="Open Obsidian Agent"]').waitFor({ timeout: 30000 });
+    await page.locator(pluginRibbon).waitFor({ timeout: 30000 });
     await run(fixture(paths, page, modelPort, requests));
     passed = true;
   } catch (error) {
+    console.error(`Page state: ${JSON.stringify(await describePage(page, browser))}`);
     if (page)
       await page
         .screenshot({ path: path.join(paths.root, `${label}-failure.png`), timeout: 5000 })

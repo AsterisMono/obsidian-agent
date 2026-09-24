@@ -9,7 +9,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { App } from 'obsidian';
 import type { Locator, Page } from 'playwright-core';
-import { withAgent, type ModelRequest, type ModelStream } from './support.ts';
+import { reloadApp, withAgent, type ModelRequest, type ModelStream } from './support.ts';
 
 declare global {
   interface Window {
@@ -877,7 +877,7 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
         () => JSON.stringify(agent.savedData()).includes('Retained partial text'),
         'partial reply to be saved',
       );
-      await agent.page.reload();
+      await reloadApp(agent.page);
       await agent.openSidebar();
       await agent.view().getByText('Retained partial text').waitFor();
       await agent.send('After reload');
@@ -1154,7 +1154,7 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
         () => JSON.stringify(agent.savedData()).includes('Save recovered'),
         'recovered save',
       );
-      await agent.page.reload();
+      await reloadApp(agent.page);
       await agent.openSidebar();
       await agent.view().getByText('Saved after recovery.').waitFor();
     },
@@ -1278,7 +1278,7 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
       assert.ok(loaded.activeChatId && ids.includes(loaded.activeChatId));
       assert.notEqual(loaded.activeChatId, 'missing');
       assert.equal(agent.requests.length, 0);
-      await agent.page.reload();
+      await reloadApp(agent.page);
       await agent.openSidebar();
       const restored = agent.savedData();
       assert.deepEqual(

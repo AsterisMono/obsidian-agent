@@ -7,7 +7,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import type { App } from 'obsidian';
 import type { Locator, Page } from 'playwright-core';
-import { withAgent, type ModelRequest, type ModelStream } from './support.ts';
+import { reloadApp, withAgent, type ModelRequest, type ModelStream } from './support.ts';
 
 declare global {
   interface Window {
@@ -215,7 +215,7 @@ await test('Obsidian Agent streams and restores chats, uses note context, and pr
         'the interrupted chat to be saved',
       );
 
-      await agent.page.reload();
+      await reloadApp(agent.page);
       await agent.openSidebar();
       await agent.view().getByText('Streaming begins and ends.').waitFor();
       await agent.view().getByText('Unfinished phrase').waitFor();

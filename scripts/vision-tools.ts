@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { AgentTool } from '@earendil-works/pi-agent-core';
 import { Type, type ImageContent } from '@earendil-works/pi-ai';
-import type { AgentFixture } from '../tests/e2e/support.ts';
+import { reloadApp, type AgentFixture } from '../tests/e2e/support.ts';
 import {
   findingFrom,
   isRecord,
@@ -221,7 +221,7 @@ export function createTools(
       'Reload the renderer; inspect restored state visually after it settles.',
       {},
       async () => {
-        await page.reload({ waitUntil: 'domcontentloaded', timeout: 15000 });
+        await reloadApp(page);
       },
     ),
     {

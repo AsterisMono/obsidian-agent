@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import type { App } from 'obsidian';
 import type { Locator, Page } from 'playwright-core';
-import { withAgent, type ModelRequest, type ModelStream } from './support.ts';
+import { reloadApp, withAgent, type ModelRequest, type ModelStream } from './support.ts';
 
 declare global {
   interface Window {
@@ -320,7 +320,7 @@ await test('React chat sidebar preserves live drafts, chat history, run state, a
         await stoppedChatButton.click();
         await view.getByText('Stopped partial').waitFor();
         await assertResponsiveTheme(agent.page, view);
-        await agent.page.reload();
+        await reloadApp(agent.page);
         await agent.openSidebar();
         await view.getByText('Stopped partial').waitFor();
         await view.getByText('Interrupted').waitFor();
