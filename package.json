@@ -19,7 +19,7 @@
     "test": "pnpm run test:tooling && pnpm run test:e2e",
     "test:e2e": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/e2e/*.test.ts",
     "test:tooling": "node esbuild.config.mjs production && node --test --test-concurrency=1 tests/tooling/*.test.ts",
-    "vision": "node scripts/vision-run.ts"
+    "vision": "node esbuild.config.mjs production 1>&2 && node scripts/vision-run.ts"
   },
   "dependencies": {
     "@earendil-works/pi-agent-core": "0.87.0",

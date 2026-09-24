@@ -820,7 +820,7 @@ export async function withAgent(
     await run(fixture(paths, page, modelPort, requests));
     passed = true;
   } catch (error) {
-    console.error(`Page state: ${JSON.stringify(await describePage(page, browser))}`);
+    if (page) console.error(`Page state: ${JSON.stringify(await describePage(page, browser))}`);
     if (page)
       await page
         .screenshot({ path: path.join(paths.root, `${label}-failure.png`), timeout: 5000 })
