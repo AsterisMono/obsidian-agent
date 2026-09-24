@@ -1,6 +1,6 @@
 ---
 name: obsidian-computer-use
-description: Launch an isolated Obsidian instance and test plugin behavior through screenshots, coordinate clicks, and keyboard input. Use for visual E2E verification and reproducing UI bugs; includes a launcher for the obsidian-plugins repository's Agent fixture.
+description: Launch an isolated Obsidian instance and test plugin behavior through screenshots, coordinate clicks, and keyboard input. Use for visual E2E verification and reproducing UI bugs; includes a launcher for the obsidian-agent repository's Agent fixture.
 ---
 
 # Obsidian Computer Use
@@ -11,7 +11,7 @@ Run the real packaged plugin in a disposable vault. Choose actions from screensh
 
 1. Inspect the repository's guidance, plugin manifest, build command, and existing desktop harness. Build the plugin being tested and record the revision and whether the working tree has changes.
 2. Prefer the project's existing isolated launcher. Use separate temporary vault and application profile directories; copy the packaged `manifest.json`, `main.js`, and optional `styles.css` into `.obsidian/plugins/<manifest-id>/`. Seed fixture notes and deterministic service settings before launch. Keep personal vaults, credentials, and the user's running Obsidian session outside the test.
-3. For the `obsidian-plugins` repository's Agent plugin, read [the repository launcher reference](references/repository-launcher.md) and run the bundled [session helper](scripts/session.mts). It reuses the existing Bubblewrap isolation, fresh vault/profile, and local model fixture. Its startup performs the harness's existing locale and trust setup; the interactive test begins with the emitted `ready` screenshot.
+3. For the `obsidian-agent` repository's Agent plugin, read [the repository launcher reference](references/repository-launcher.md) and run the bundled [session helper](scripts/session.mts). It reuses the existing Bubblewrap isolation, fresh vault/profile, and local model fixture. Its startup performs the harness's existing locale and trust setup; the interactive test begins with the emitted `ready` screenshot.
 4. In another project, use its launcher or prepare a separate Obsidian profile with `--user-data-dir=<temporary-profile>` where supported by the installed executable. Open the disposable vault through that instance's vault picker. A global `obsidian://` URI may reach an existing session; verify the actual vault and window before proceeding. Follow any repository isolation requirements.
 5. Discover the available computer-use tools. Prefer a desktop tool that captures screenshots and sends coordinate mouse/keyboard input. If unavailable, the bundled session helper supplies renderer screenshots and coordinate input through Playwright CDP. This fallback covers Obsidian's app content; native file dialogs, title bars, and other OS windows require a desktop tool. If neither route is available, report the missing capability and the unperformed test.
 

@@ -1,4 +1,4 @@
 [mcp_servers.devenv]
 command = "devenv"
 args = ["mcp"]
-cwd = "/home/nvirellia/Projects/obsidian-plugins"
+cwd = "/home/nvirellia/Projects/obsidian-agent"
