@@ -5,14 +5,14 @@ description: Build, extend, and debug Obsidian plugins in this pnpm monorepo, in
 
 # Obsidian Plugin Development
 
-Deliver plugins that Obsidian can load from this workspace. Follow the root `AGENTS.md` and any instructions inside the target plugin; use the existing plugin's conventions when extending it.
+Deliver a plugin that Obsidian can load from this repository. Follow the root `AGENTS.md` and the existing plugin's conventions when extending it.
 
 ## Workspace and build
 
 - Read the root `package.json`, `manifest.json`, and the source before changing the build or plugin setup. The root `README.md` describes the devenv toolchain and development vault workflow.
 - This repository is one Obsidian plugin: `manifest.json`, the bundled `main.js`, and `styles.css` sit at the repository root, with sources under `src/`. Run `pnpm install` from the repository root and retain the lockfile.
 - For a new plugin, use TypeScript with a default export extending `Plugin`. Start with `src/main.ts`, `manifest.json`, a plugin `package.json`, TypeScript configuration, and a bundler configuration. Add settings, views, CSS, and other files when the feature needs them.
-- Adapt the [official sample build](https://github.com/obsidianmd/obsidian-sample-plugin/blob/master/esbuild.config.mjs) within the plugin directory. Bundle to CommonJS `main.js` beside `manifest.json`. Externalize `obsidian`, Electron, Node built-ins, and the CodeMirror/Lezer modules supplied by Obsidian, following the sample's explicit list. Bundle other runtime dependencies, including shared workspace code, so installation does not require `node_modules`.
+- Adapt the [official sample build](https://github.com/obsidianmd/obsidian-sample-plugin/blob/master/esbuild.config.mjs) for this repository. Bundle to CommonJS `main.js` beside `manifest.json`. Externalize `obsidian`, Electron, Node built-ins, and the CodeMirror/Lezer modules supplied by Obsidian, following the sample's explicit list. Bundle other runtime dependencies so installation does not require `node_modules`.
 - Provide plugin `dev` (watch), `build` (production), and `check` (type checking, plus configured linting) scripts. Esbuild does not type-check. Set the compilation target for the supported Obsidian runtime; the Node version used by devenv is a build tool, not the plugin's runtime contract.
 - Keep `manifest.json` and `package.json` versions aligned. The [manifest](https://docs.obsidian.md/Reference/Manifest) requires `id`, `name`, `version`, `minAppVersion`, `description`, `author`, and `isDesktopOnly`. Match the plugin directory to `id`; use a lowercase hyphenated ID without `obsidian` or a trailing `plugin`. Set `minAppVersion` from the APIs actually used. Desktop-only dependencies require `isDesktopOnly: true` unless isolated behind a working mobile alternative.
 

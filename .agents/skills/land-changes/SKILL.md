@@ -17,11 +17,11 @@ Read the repository guidance, the relevant plugin source, current plans, and exi
 
 ## 2. Write the change plan
 
-For plugin changes, starting with `0002`, create each plan at `plugins/<plugin-id>/docs/<plan-stem>/<plan-stem>.md`. Use the next available numbered stem. Existing `0001` plans may retain their layout. Record requirements and acceptance criteria precise enough for an independent test author to determine success and failure. Include scope, relevant production boundaries, assumptions, and open semantics.
+For plugin changes, starting with `0002`, create each plan at `docs/<plan-stem>/<plan-stem>.md`. Use the next available numbered stem. Existing `0001` plans may retain their layout. Record requirements and acceptance criteria precise enough for an independent test author to determine success and failure. Include scope, relevant production boundaries, assumptions, and open semantics.
 
 Keep the plan's Lean sources and executable model cases in its adjacent `lean/` directory. Record proof scope, assumptions, model-to-implementation obligations, and check results in the plan Markdown itself. Do not add a separate README under a plan's `lean/` directory; maintain the narrative evidence in one place. Use a distinct module namespace such as `Plan0002`. Each plugin has one shared Lean project: `lean-toolchain`, Lake configuration, and the dependency manifest belong at the plugin root; shared proof tooling belongs in the plugin's `lean/` directory. Add a library target pointing to each plan's sources and keep all plan targets in the plugin's checks. Reuse definitions through imports when appropriate.
 
-E2E scenarios remain at `plugins/<plugin-id>/tests/e2e/<plan-stem>.test.ts`, derived from the Markdown filename. Link the behavioral contract, model evidence, and E2E scenarios so changes can be reassessed together.
+E2E scenarios remain at `tests/e2e/<plan-stem>.test.ts`, derived from the Markdown filename. Link the behavioral contract, model evidence, and E2E scenarios so changes can be reassessed together.
 
 ## 3. Planner writes and checks the Lean verification
 
@@ -45,7 +45,7 @@ When a counterexample, API contract, or product decision changes the requirement
 
 ## 6. E2E regression and completion
 
-Use the E2E and QA skills to run the new scenarios and relevant existing regression coverage through the packaged plugin in a separate test vault. Include the failure, cancellation, reload, and delayed-completion cases required by the plan. Keep deterministic fixtures, filesystem isolation, and failure diagnostics intact. Recheck Lean and fixture freshness when their inputs change, and run the package/workspace formatting, lint, type, and bundle checks required by the repository.
+Use the E2E and QA skills to run the new scenarios and relevant existing regression coverage through the packaged plugin in a separate test vault. Include the failure, cancellation, reload, and delayed-completion cases required by the plan. Keep deterministic fixtures, filesystem isolation, and failure diagnostics intact. Recheck Lean and fixture freshness when their inputs change, and run the repository's formatting, lint, type, and bundle checks.
 
 Use an independent verifier for the final contract-to-evidence review. Record the revision, commands actually run, results, skipped checks, and remaining mismatches. Complete change delivery only when the applicable acceptance criteria and regression checks pass; a planning-only handoff instead identifies which implementation stages remain outstanding. State model proofs, sampled implementation agreement, and external assumptions separately.
 
