@@ -453,7 +453,7 @@ function fixture(
     openSidebar,
     newChat: async () => {
       await openSidebar();
-      await view().getByRole('button', { name: 'New chat' }).click();
+      await view().getByRole('button', { name: 'New chat', exact: true }).click();
       await view().getByRole('button', { name: 'Send' }).waitFor();
     },
     send: async (message: string) => {

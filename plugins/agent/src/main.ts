@@ -8,7 +8,7 @@ import { nodeFetch } from './node-fetch.ts';
 import { AgentSettingsTab } from './settings.ts';
 import { skillInstructions } from './skills.ts';
 import { VaultTools } from './vault-tools.ts';
-import { AGENT_VIEW, AgentView } from './view.ts';
+import { AGENT_VIEW, AgentView } from './view.tsx';
 
 type Run = {
   epoch: object;
