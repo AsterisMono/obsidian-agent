@@ -118,8 +118,14 @@ function signalProcessGroup(pid: number, signal: NodeJS.Signals): boolean {
   }
 }
 
+function scratchRoot(): string {
+  const temporary = os.tmpdir();
+  const insideHome = temporary === '/home' || temporary.startsWith('/home/');
+  return insideHome && fs.existsSync('/tmp') ? '/tmp' : temporary;
+}
+
 function createPaths(): TestPaths {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'obsidian-agent-e2e-'));
+  const root = fs.mkdtempSync(path.join(scratchRoot(), 'obsidian-agent-e2e-'));
   const vault = path.join(root, 'vault');
   const config = path.join(root, 'config');
   return {
@@ -335,7 +341,7 @@ function tailFile(file: string): string {
 
 async function startHeadlessDisplay(): Promise<HeadlessDisplay> {
   const compositor = resolveCompositor();
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), displayRootPrefix));
+  const root = fs.mkdtempSync(path.join(scratchRoot(), displayRootPrefix));
   const runtimeDir = path.join(root, 'runtime');
   fs.mkdirSync(runtimeDir, { recursive: true, mode: 0o700 });
   const configPath = path.join(root, 'sway.conf');
@@ -534,15 +540,17 @@ function sandboxArgs(paths: TestPaths, debugPort: number, display: HeadlessDispl
       path.join(bash, 'bin/bash'),
       '-c',
       [
-        'test ! -e "$1"',
-        'test ! -e /etc/passwd',
-        'test ! -e /home',
-        'test -e "$2"',
-        'test -d "$3"',
-        'test -S "$4"',
-        'test -f "$5"',
-        'for directory in "${@:6}"; do test -d "$directory" || exit 1; done',
-      ].join(' && '),
+        'set -e',
+        'probe() { if ! "$@"; then echo "isolation probe failed: $*" >&2; exit 1; fi; }',
+        'probe test ! -e "$1"',
+        'probe test ! -e /etc/passwd',
+        'probe test ! -e /home',
+        'probe test -e "$2"',
+        'probe test -d "$3"',
+        'probe test -S "$4"',
+        'probe test -f "$5"',
+        'for directory in "${@:6}"; do probe test -d "$directory"; done',
+      ].join('\n'),
       'sandbox-check',
       path.join(repositoryRoot, 'AGENTS.md'),
       binary,
