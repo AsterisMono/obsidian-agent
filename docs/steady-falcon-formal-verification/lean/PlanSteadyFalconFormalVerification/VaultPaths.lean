@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.VaultPaths
+namespace PlanSteadyFalconFormalVerification.VaultPaths
 
 abbrev Segments := List Text
 
@@ -98,4 +98,4 @@ theorem sibling_prefix_rejected :
       [[83, 107, 105, 108, 108, 115, 45, 101, 120, 116, 114, 97],
        [83, 75, 73, 76, 76, 46, 109, 100]] = false := by decide
 
-end Plan0002.VaultPaths
+end PlanSteadyFalconFormalVerification.VaultPaths

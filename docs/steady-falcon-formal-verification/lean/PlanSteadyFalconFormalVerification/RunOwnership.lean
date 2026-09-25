@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.RunOwnership
+namespace PlanSteadyFalconFormalVerification.RunOwnership
 
 inductive Phase where
   | preparing
@@ -110,4 +110,4 @@ theorem step_preserves (valid : Invariant s) (event : Event) : Invariant (step s
 theorem reachable_valid (trace : Reachable step ({} : State) s) : Invariant s :=
   reachable_invariant step {} Invariant initial_valid (fun _ e h => step_preserves h e) trace
 
-end Plan0002.RunOwnership
+end PlanSteadyFalconFormalVerification.RunOwnership

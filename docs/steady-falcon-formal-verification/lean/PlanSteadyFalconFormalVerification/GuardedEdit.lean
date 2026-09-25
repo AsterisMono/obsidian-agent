@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.GuardedEdit
+namespace PlanSteadyFalconFormalVerification.GuardedEdit
 
 inductive Editor where
   | unrelated
@@ -101,4 +101,4 @@ theorem failure_preserves_snapshots (failed : completion ≠ .succeeded) :
     remember snapshots path replacement completion = snapshots := by
   cases completion <;> simp_all [remember]
 
-end Plan0002.GuardedEdit
+end PlanSteadyFalconFormalVerification.GuardedEdit

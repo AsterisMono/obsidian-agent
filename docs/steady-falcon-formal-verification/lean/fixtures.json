@@ -1,16 +1,16 @@
 {
-  "plan": "0002-formal-verification",
+  "plan": "steady-falcon-formal-verification",
   "toolchain": "leanprover/lean4:v4.30.0",
-  "modelSourceSha256": "6de4102717089f0220713ff3c28cbda6097d45e4bc41849a888fc9bda353426d",
+  "modelSourceSha256": "2baf7fe376c5c43424848197ba994f3fd4e3755fb2453e6cac27d45de809b055",
   "cases": [
     {
       "contract": "V1-V5",
       "expected": { "disk": [67], "snapshot": [67], "status": "success" },
       "id": "edit-success",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [65],
-        "editor": "Plan0002.GuardedEdit.Editor.text [65]",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.text [65]",
         "replacement": [67],
         "snapshot": [65]
       }
@@ -20,9 +20,9 @@
       "expected": { "disk": [67], "snapshot": [67], "status": "success" },
       "id": "edit-empty-snapshot",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [67],
         "snapshot": []
       }
@@ -32,13 +32,13 @@
       "expected": {
         "disk": [],
         "snapshot": null,
-        "status": "Plan0002.GuardedEdit.Rejection.missingSnapshot"
+        "status": "PlanSteadyFalconFormalVerification.GuardedEdit.Rejection.missingSnapshot"
       },
       "id": "edit-no-snapshot",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [67],
         "snapshot": null
       }
@@ -48,9 +48,9 @@
       "expected": { "disk": [66], "snapshot": [65], "status": "diskConflict" },
       "id": "edit-stale-disk",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [66],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [67],
         "snapshot": [65]
       }
@@ -60,13 +60,13 @@
       "expected": {
         "disk": [65],
         "snapshot": [65],
-        "status": "Plan0002.GuardedEdit.Rejection.editorConflict"
+        "status": "PlanSteadyFalconFormalVerification.GuardedEdit.Rejection.editorConflict"
       },
       "id": "edit-stale-editor",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [65],
-        "editor": "Plan0002.GuardedEdit.Editor.text [66]",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.text [66]",
         "replacement": [67],
         "snapshot": [65]
       }
@@ -76,9 +76,9 @@
       "expected": { "disk": [65], "snapshot": [65], "status": "effectFailureBeforeCommit" },
       "id": "edit-io-before-commit",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.failedBeforeCommit",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.failedBeforeCommit",
         "disk": [65],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [67],
         "snapshot": [65]
       }
@@ -88,9 +88,9 @@
       "expected": { "disk": null, "snapshot": [65], "status": "effectFailureUnknownDisk" },
       "id": "edit-io-unknown",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.failedUnknown",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.failedUnknown",
         "disk": [65],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [67],
         "snapshot": [65]
       }
@@ -100,9 +100,9 @@
       "expected": { "disk": [55296], "snapshot": [55296], "status": "success" },
       "id": "edit-utf16",
       "input": {
-        "completion": "Plan0002.GuardedEdit.Completion.succeeded",
+        "completion": "PlanSteadyFalconFormalVerification.GuardedEdit.Completion.succeeded",
         "disk": [55357, 56832, 13, 10],
-        "editor": "Plan0002.GuardedEdit.Editor.unrelated",
+        "editor": "PlanSteadyFalconFormalVerification.GuardedEdit.Editor.unrelated",
         "replacement": [55296],
         "snapshot": [55357, 56832, 13, 10]
       }

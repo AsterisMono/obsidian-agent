@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.RestoreState
+namespace PlanSteadyFalconFormalVerification.RestoreState
 
 inductive JsonValue where
   | null
@@ -111,4 +111,4 @@ theorem failed_save_allows_next (busy : s.inFlight = some value) :
 theorem successful_save_records_input (busy : s.inFlight = some value) :
     (finishSave s true).lastSuccessfulInput = some value := by simp [finishSave, busy]
 
-end Plan0002.RestoreState
+end PlanSteadyFalconFormalVerification.RestoreState

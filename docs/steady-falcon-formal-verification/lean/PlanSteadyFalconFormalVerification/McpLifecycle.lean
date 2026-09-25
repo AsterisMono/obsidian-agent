@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.McpLifecycle
+namespace PlanSteadyFalconFormalVerification.McpLifecycle
 
 structure Attempt where
   token : Token
@@ -117,4 +117,4 @@ theorem step_preserves (valid : Invariant s) (event : Event) : Invariant (step s
 theorem reachable_valid (trace : Reachable step ({} : State) s) : Invariant s :=
   reachable_invariant step {} Invariant initial_valid (fun _ e h => step_preserves h e) trace
 
-end Plan0002.McpLifecycle
+end PlanSteadyFalconFormalVerification.McpLifecycle

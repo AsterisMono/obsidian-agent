@@ -24,13 +24,13 @@ Replace the Chat Sidebar's imperative DOM rendering with a React view. Adapt the
 
 ## Acceptance and evidence
 
-- One new desktop scenario at `tests/e2e/0004-react-chat-sidebar.test.ts` exercises the packaged plugin through real Obsidian: idle and populated layouts, searchable history and no-match state, model/thinking controls, draft retention across an update and an errored run, Enter and Shift+Enter, attachment/error behavior, streaming and Stop, and view reopen. It checks light and dark appearance and a narrow sidebar for overflow. Deterministic service responses cover delayed completion.
-- Existing `0001`, `0002`, and `0003` E2E scenarios remain passing, including cancellation, persistence, and reload cases.
+- One new desktop scenario at `tests/e2e/swift-heron-react-chat-sidebar.test.ts` exercises the packaged plugin through real Obsidian: idle and populated layouts, searchable history and no-match state, model/thinking controls, draft retention across an update and an errored run, Enter and Shift+Enter, attachment/error behavior, streaming and Stop, and view reopen. It checks light and dark appearance and a narrow sidebar for overflow. Deterministic service responses cover delayed completion.
+- Existing `bright-otter`, `steady-falcon`, and `calm-badger` E2E scenarios remain passing, including cancellation, persistence, and reload cases.
 - `pnpm check`, `pnpm build`, `pnpm test`, and `pnpm check` pass. The packaged bundle loads without runtime `node_modules`.
 
 ## Lean applicability
 
-Lean is not applicable to this change. It moves presentation and ephemeral UI state to React while the consequential chat/run state transitions remain in the existing plugin code and existing Plan 0002 model. A formal model of layout, React reconciliation, or component mount/unmount would have no useful connection to the browser and Obsidian APIs. Desktop E2E coverage and an independent contract review verify these boundaries. No new Lean source or fixture is claimed for this plan.
+Lean is not applicable to this change. It moves presentation and ephemeral UI state to React while the consequential chat/run state transitions remain in the existing plugin code and existing steady-falcon model. A formal model of layout, React reconciliation, or component mount/unmount would have no useful connection to the browser and Obsidian APIs. Desktop E2E coverage and an independent contract review verify these boundaries. No new Lean source or fixture is claimed for this plan.
 
 ## Assumptions and open semantics
 
@@ -41,14 +41,16 @@ Lean is not applicable to this change. It moves presentation and ephemeral UI st
 
 ## Verification record
 
+Paths and model names below use the current codename layout; the results remain evidence for the recorded revision.
+
 Verified from working tree based on `0c2e0fb` using Node.js 24 and packaged Obsidian 1.13.7 in disposable vaults.
 
 - `pnpm build`: passed; bundled `main.js` includes React and loaded without workspace `node_modules`.
-- `node tests/e2e/0004-react-chat-sidebar.test.ts`: passed the new scenario after the final draft-recovery and test updates.
+- `node tests/e2e/swift-heron-react-chat-sidebar.test.ts`: passed the new scenario after the final draft-recovery and test updates.
 - `pnpm test`: passed all four desktop scenarios, including existing chat, verification, and OAuth regressions.
-- `pnpm check`: passed TypeScript and the existing Plan 0002 Lean build, transitive axiom audit (63 theorem declarations), and 20 model cases with matching provenance.
+- `pnpm check`: passed TypeScript and the existing steady-falcon Lean build, transitive axiom audit (63 theorem declarations), and 20 model cases with matching provenance.
 - `pnpm check`: passed workspace Prettier, ESLint, TypeScript, and Lean checks.
 - `git diff --check`: passed. A disposable-vault visual inspection checked the populated sidebar in light and dark themes and at 260 px.
 - An independent E2E author derived the scenario from this plan. An independent verifier rechecked the contract against implementation and tests after draft recovery and found no material mismatch.
 
-No new Lean model is claimed for this UI change. The existing Plan 0002 proofs apply to their unchanged state transitions; the packaged E2E scenarios sample their connection to the plugin. The desktop fixtures replace external model services, so provider-specific rendering and nondefault community themes remain external assumptions. No required check was skipped.
+No new Lean model is claimed for this UI change. The existing steady-falcon proofs apply to their unchanged state transitions; the packaged E2E scenarios sample their connection to the plugin. The desktop fixtures replace external model services, so provider-specific rendering and nondefault community themes remain external assumptions. No required check was skipped.

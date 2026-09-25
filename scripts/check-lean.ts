@@ -73,10 +73,13 @@ console.log(version);
 console.log(run('lake', ['--version']).trim());
 
 const plans = readdirSync(path.join(plugin, 'docs'), { withFileTypes: true })
-  .filter((entry) => entry.isDirectory() && /^\d{4}-/.test(entry.name))
+  .filter((entry) => entry.isDirectory())
   .map((entry) => {
     const directory = path.join(plugin, 'docs', entry.name, 'lean');
-    const target = `Plan${entry.name.slice(0, 4)}`;
+    const target = `Plan${entry.name
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join('')}`;
     return { stem: entry.name, directory, target };
   })
   .filter((plan) => existsSync(plan.directory) && leanSources(plan.directory).length > 0)
@@ -85,6 +88,14 @@ const plans = readdirSync(path.join(plugin, 'docs'), { withFileTypes: true })
 if (plans.length === 0) throw new Error('No plan proof sources were found.');
 
 for (const plan of plans) {
+  if (!/^[a-z]+-[a-z]+(?:-[a-z0-9]+)+$/.test(plan.stem)) {
+    throw new Error(`Expected a codename and feature slug for plan: ${plan.stem}`);
+  }
+  const markdown = path.join(plugin, 'docs', plan.stem, `${plan.stem}.md`);
+  if (!existsSync(markdown)) throw new Error(`Missing written plan: ${markdown}`);
+  if (plans.some((other) => other.stem !== plan.stem && other.target === plan.target)) {
+    throw new Error(`Duplicate plan library target: ${plan.target}`);
+  }
   const rootModule = path.join(plan.directory, `${plan.target}.lean`);
   if (!existsSync(rootModule)) throw new Error(`Missing plan library root: ${rootModule}`);
   const auditPath = path.join(plan.directory, plan.target, 'Audit.lean');

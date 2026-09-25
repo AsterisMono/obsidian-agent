@@ -1,6 +1,6 @@
-import Plan0002.Core
+import PlanSteadyFalconFormalVerification.Core
 
-namespace Plan0002.McpRegistry
+namespace PlanSteadyFalconFormalVerification.McpRegistry
 
 structure Target where
   server : String
@@ -119,4 +119,4 @@ theorem reachable_valid (trace : Reachable (step permitted) empty registry) :
   reachable_invariant (step permitted) empty (Invariant permitted) initial_valid
     (fun _ event h => step_preserves h event) trace
 
-end Plan0002.McpRegistry
+end PlanSteadyFalconFormalVerification.McpRegistry

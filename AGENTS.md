@@ -9,8 +9,10 @@
 
 Follow [Land Changes](.agents/skills/land-changes/SKILL.md) for changes that land in this repository.
 
+Plans use `docs/<codename>-<feature-slug>/<codename>-<feature-slug>.md`, with an adjective-noun codename. Do not create numbered plans.
+
 Use [Update Project Docs](.agents/skills/update-project-docs/SKILL.md) when reviewing or updating repository guidance or the README.
 
 Use [Obsidian Plugin Development](.agents/skills/obsidian-plugin-development/SKILL.md) for plugin work and [Devenv Dependencies](.agents/skills/devenv-dependencies/SKILL.md) for development environment changes.
 
-Last updated at: `be178047ccc08eac6239dfde72b73854f6faf5bb`.
+Last updated at: `e9edb30c661cde37384e105f98c70edaa4fd6dd4`.

@@ -4,13 +4,13 @@ Use this reference when implementing a proof task. Writing an adoption plan alon
 
 ## Repository integration
 
-Check for existing Lean configuration before creating a project. Each plan's models live in `docs/<plan-stem>/lean/` with the shared Lake project at the repository root, and shared proof tooling lives in `lean/`. These are suggested locations for new proof work, not files that already exist.
+Check for existing Lean configuration before creating a project. Each plan's models live in `docs/<codename>-<feature-slug>/lean/` with the shared Lake project at the repository root, and shared proof tooling lives in `lean/`. Use `Plan` followed by the full stem in PascalCase for both the namespace and Lake library target, such as `PlanSteadyFalconFormalVerification`. Register the target's `srcDir` in `lakefile.toml`; `scripts/check-lean.ts` discovers folders with Lean sources and checks their matching plan, library root, audit, and fixtures. Plans use codename folders, never numbered names.
 
 For a new model, start with Lean's bundled libraries. Add Mathlib only when the selected theorem needs it. Pin a concrete Lean 4 version in `lean-toolchain`, retain the Lake configuration and generated dependency manifest, and ignore `.lake/` build artifacts. Confirm command availability against that version rather than assuming the moving `latest` documentation matches it.
 
 Provision missing tooling through [Devenv Dependencies](../../devenv-dependencies/SKILL.md). Inspect the available Nix packages and choose a consistent pinned Lean/Lake setup, or an explicitly managed Elan setup. Verify the actual version inside `devenv shell`; a `lean-toolchain` file alone does not prove the executable honors it. Avoid undeclared global installers.
 
-Keep proof commands in the owning plugin's `package.json`, for example a `check:lean` script that enters its verification directory and runs Lake. Wire it into that package's existing `check` once proofs are part of the change, preserving TypeScript checks. The root `pnpm check` only delegates package `check` scripts; adding `check:lean` alone will not run it. Keep the proof project outside the esbuild runtime import graph and the packaged plugin files.
+Keep proof commands in the root `package.json`. `pnpm check:lean` runs the shared checker and is included in `pnpm check`, alongside formatting, lint, TypeScript, and ActionLint. Keep the proof project outside the esbuild runtime import graph and the packaged plugin files.
 
 Ensure the build target imports every claimed theorem and its axiom audit. A successful build of an empty library or only an executable does not check an unreferenced proof file. Fresh verification should rebuild affected sources and reproduce any generated model fixtures. For an established project, commands typically take this form from the proof directory:
 

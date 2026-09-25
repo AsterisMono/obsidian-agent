@@ -46,9 +46,7 @@ function checkedModelCases(): Map<string, { contract: string; input: unknown; ex
   const docs = path.join(pluginRoot, 'docs');
   const planSources = fs.readdirSync(docs, { withFileTypes: true }).flatMap((entry) => {
     const lean = path.join(docs, entry.name, 'lean');
-    return entry.isDirectory() && /^\d{4}-/.test(entry.name) && fs.existsSync(lean)
-      ? leanFiles(lean)
-      : [];
+    return entry.isDirectory() && fs.existsSync(lean) ? leanFiles(lean) : [];
   });
   const sources = [
     ...planSources,
@@ -65,10 +63,10 @@ function checkedModelCases(): Map<string, { contract: string; input: unknown; ex
     hash.update(fs.readFileSync(source));
     hash.update('\0');
   }
-  const fixturePath = path.join(docs, '0002-formal-verification', 'lean', 'fixtures.json');
+  const fixturePath = path.join(docs, 'steady-falcon-formal-verification', 'lean', 'fixtures.json');
   const parsed: unknown = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
   assert.ok(isRecord(parsed));
-  assert.equal(parsed.plan, '0002-formal-verification');
+  assert.equal(parsed.plan, 'steady-falcon-formal-verification');
   assert.equal(parsed.schemaVersion, 1);
   assert.equal(
     parsed.toolchain,
@@ -919,24 +917,24 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
         fs.mkdirSync(path.join(paths.vault, 'Skills-extra', 'Outside'), { recursive: true });
         fs.writeFileSync(
           path.join(paths.vault, 'Skills', 'Writer', 'SKILL.md'),
-          'WRITER_SKILL_TOKEN_0002',
+          'WRITER_SKILL_TOKEN_STEADY_FALCON',
         );
         fs.writeFileSync(
           path.join(paths.vault, 'Skills', '.Hidden', 'SKILL.md'),
-          'HIDDEN_SKILL_TOKEN_0002',
+          'HIDDEN_SKILL_TOKEN_STEADY_FALCON',
         );
         fs.writeFileSync(
           path.join(paths.vault, 'Skills-extra', 'Outside', 'SKILL.md'),
-          'SIBLING_SKILL_TOKEN_0002',
+          'SIBLING_SKILL_TOKEN_STEADY_FALCON',
         );
       },
       modelHandler: async (request, stream) => {
         const turn = JSON.stringify(currentTurn(request));
         assert.doesNotMatch(turn, /Overlapping send|Preparation owner/);
-        assert.match(JSON.stringify(request.messages), /WRITER_SKILL_TOKEN_0002/);
+        assert.match(JSON.stringify(request.messages), /WRITER_SKILL_TOKEN_STEADY_FALCON/);
         assert.doesNotMatch(
           JSON.stringify(request.messages),
-          /HIDDEN_SKILL_TOKEN_0002|SIBLING_SKILL_TOKEN_0002/,
+          /HIDDEN_SKILL_TOKEN_STEADY_FALCON|SIBLING_SKILL_TOKEN_STEADY_FALCON/,
         );
         if (turn.includes('After preparation stop')) {
           reply(stream, 'Fresh run completed.');
@@ -1056,15 +1054,18 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
     async (agent) => {
       await agent.openSidebar();
       await agent.send('Empty folder must not select root skill');
-      assert.doesNotMatch(JSON.stringify(agent.requests[0]?.messages), /ROOT_SKILL_TOKEN_0002/);
+      assert.doesNotMatch(
+        JSON.stringify(agent.requests[0]?.messages),
+        /ROOT_SKILL_TOKEN_STEADY_FALCON/,
+      );
     },
     {
       data: { skillFolders: [''], enabledSkills: ['SKILL.md'] },
       prepareVault: (paths) => {
-        fs.writeFileSync(path.join(paths.vault, 'SKILL.md'), 'ROOT_SKILL_TOKEN_0002');
+        fs.writeFileSync(path.join(paths.vault, 'SKILL.md'), 'ROOT_SKILL_TOKEN_STEADY_FALCON');
       },
       modelHandler: (request, stream) => {
-        assert.doesNotMatch(JSON.stringify(request.messages), /ROOT_SKILL_TOKEN_0002/);
+        assert.doesNotMatch(JSON.stringify(request.messages), /ROOT_SKILL_TOKEN_STEADY_FALCON/);
         reply(stream, 'Root skill excluded.');
       },
     },
@@ -1097,7 +1098,7 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
         .waitFor();
       await agent.send('Recovered skill preparation');
       assert.equal(agent.requests.length, 1);
-      assert.match(JSON.stringify(agent.requests[0]?.messages), /WRITER_SKILL_TOKEN_0002/);
+      assert.match(JSON.stringify(agent.requests[0]?.messages), /WRITER_SKILL_TOKEN_STEADY_FALCON/);
     },
     {
       data: { skillFolders: ['Skills'], enabledSkills: ['Skills/Writer/SKILL.md'] },
@@ -1105,7 +1106,7 @@ await test('formal verification contracts agree with packaged Obsidian behavior'
         fs.mkdirSync(path.join(paths.vault, 'Skills', 'Writer'), { recursive: true });
         fs.writeFileSync(
           path.join(paths.vault, 'Skills', 'Writer', 'SKILL.md'),
-          'WRITER_SKILL_TOKEN_0002',
+          'WRITER_SKILL_TOKEN_STEADY_FALCON',
         );
       },
       modelHandler: (request, stream) => {

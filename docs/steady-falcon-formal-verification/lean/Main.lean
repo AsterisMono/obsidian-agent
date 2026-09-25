@@ -1,12 +1,12 @@
-import Plan0002.GuardedEdit
-import Plan0002.RunOwnership
-import Plan0002.McpRegistry
-import Plan0002.McpLifecycle
-import Plan0002.VaultPaths
-import Plan0002.RestoreState
+import PlanSteadyFalconFormalVerification.GuardedEdit
+import PlanSteadyFalconFormalVerification.RunOwnership
+import PlanSteadyFalconFormalVerification.McpRegistry
+import PlanSteadyFalconFormalVerification.McpLifecycle
+import PlanSteadyFalconFormalVerification.VaultPaths
+import PlanSteadyFalconFormalVerification.RestoreState
 import Lean.Data.Json
 
-open Plan0002 Lean
+open PlanSteadyFalconFormalVerification Lean
 
 def units (value : Text) : Json := toJson (value.map UInt16.toNat)
 

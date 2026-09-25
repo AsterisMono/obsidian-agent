@@ -1,6 +1,6 @@
 import Std
 
-namespace Plan0002
+namespace PlanSteadyFalconFormalVerification
 
 abbrev Text := List UInt16
 
@@ -31,4 +31,4 @@ theorem reachable_invariant (step : σ → ε → σ) (initial : σ) (invariant 
   | start => exact start
   | next _ ih => exact preserved _ _ ih
 
-end Plan0002
+end PlanSteadyFalconFormalVerification
