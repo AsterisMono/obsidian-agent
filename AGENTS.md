@@ -15,4 +15,4 @@ Use [Update Project Docs](.agents/skills/update-project-docs/SKILL.md) when revi
 
 Use [Obsidian Plugin Development](.agents/skills/obsidian-plugin-development/SKILL.md) for plugin work and [Devenv Dependencies](.agents/skills/devenv-dependencies/SKILL.md) for development environment changes.
 
-Last updated at: `e9edb30c661cde37384e105f98c70edaa4fd6dd4`.
+Last updated at: `c074b65f6baa3d1a19004329309465913fa9e5c9`.

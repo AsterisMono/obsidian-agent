@@ -7,6 +7,8 @@ import { isRecord } from './data.ts';
 
 export const AGENT_VIEW = 'agent-chat';
 
+const THINKING_LEVELS = ['off', 'minimal', 'low', 'medium', 'high', 'xhigh'] as const;
+
 function messageText(message: AgentMessage): string {
   if (message.role !== 'user' && message.role !== 'assistant') return '';
   if (typeof message.content === 'string') return message.content;
@@ -207,44 +209,6 @@ function Sidebar({ plugin }: { plugin: AgentPlugin }) {
         </section>
       )}
 
-      <div className="agent-controls">
-        <label>
-          <span>Model</span>
-          <select
-            aria-label="Model"
-            value={selectedModel}
-            disabled={streaming}
-            onChange={(event) => {
-              run(plugin.setModel(event.currentTarget.value));
-            }}
-          >
-            <option value="">Choose a model</option>
-            {catalog.map((item) => (
-              <option key={`${item.provider}::${item.id}`} value={`${item.provider}::${item.id}`}>
-                {item.provider}: {item.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span>Thinking</span>
-          <select
-            aria-label="Thinking"
-            value={plugin.data.thinking}
-            disabled={streaming}
-            onChange={(event) => {
-              run(plugin.setThinking(event.currentTarget.value));
-            }}
-          >
-            {['off', 'minimal', 'low', 'medium', 'high', 'xhigh'].map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-
       <div className="agent-conversation-header">
         <span>Conversation</span>
         <span className="agent-conversation-status">{streaming ? 'Responding' : 'Ready'}</span>
@@ -333,55 +297,94 @@ function Sidebar({ plugin }: { plugin: AgentPlugin }) {
               }
             }}
           />
-          <div className="agent-actions">
-            <button
-              type="button"
-              className="agent-attach-button"
-              aria-label="Attach active note"
-              onClick={() => {
-                run(plugin.attachActiveNote());
-              }}
-            >
-              <Icon>
-                <path d="m21 11.5-8.8 8.8a6 6 0 0 1-8.5-8.5l8.1-8.1a4 4 0 0 1 5.7 5.7l-8.1 8.1a2 2 0 0 1-2.8-2.8l7.5-7.5" />
-              </Icon>
-              <span>Attach</span>
-            </button>
-            <span className="agent-composer-hint">Enter to send</span>
-            {streaming ? (
-              <button
-                type="button"
-                className="agent-submit agent-stop"
-                onClick={() => {
-                  plugin.stop();
+          <div className="agent-composer-footer">
+            <div className="agent-composer-field agent-composer-model">
+              <select
+                aria-label="Model"
+                value={selectedModel}
+                disabled={streaming}
+                onChange={(event) => {
+                  run(plugin.setModel(event.currentTarget.value));
                 }}
               >
-                <Icon size={14}>
-                  <rect
-                    x="6"
-                    y="6"
-                    width="12"
-                    height="12"
-                    rx="2"
-                    fill="currentColor"
-                    stroke="none"
-                  />
-                </Icon>
-                <span>Stop</span>
-              </button>
-            ) : (
+                <option value="">Choose a model</option>
+                {catalog.map((item) => (
+                  <option
+                    key={`${item.provider}::${item.id}`}
+                    value={`${item.provider}::${item.id}`}
+                  >
+                    {item.name} · {item.provider}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="agent-composer-field agent-composer-thinking">
+              <select
+                aria-label="Thinking"
+                value={plugin.data.thinking}
+                disabled={streaming}
+                onChange={(event) => {
+                  run(plugin.setThinking(event.currentTarget.value));
+                }}
+              >
+                {THINKING_LEVELS.map((value) => (
+                  <option key={value} value={value}>
+                    Thinking: {value}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="agent-composer-actions">
               <button
                 type="button"
-                className="agent-submit agent-send"
-                disabled={!draft.trim()}
-                onClick={send}
+                className="agent-attach-button"
+                aria-label="Attach active note"
+                title="Attach active note"
+                onClick={() => {
+                  run(plugin.attachActiveNote());
+                }}
               >
-                <span>Send</span>
-                <Icon size={15}>
-                  <path d="M12 19V5M5 12l7-7 7 7" />
+                <Icon>
+                  <path d="m21 11.5-8.8 8.8a6 6 0 0 1-8.5-8.5l8.1-8.1a4 4 0 0 1 5.7 5.7l-8.1 8.1a2 2 0 0 1-2.8-2.8l7.5-7.5" />
                 </Icon>
+                <span>Attach</span>
               </button>
-            )}
+              {streaming ? (
+                <button
+                  type="button"
+                  className="agent-submit agent-stop"
+                  onClick={() => {
+                    plugin.stop();
+                  }}
+                >
+                  <Icon size={14}>
+                    <rect
+                      x="6"
+                      y="6"
+                      width="12"
+                      height="12"
+                      rx="2"
+                      fill="currentColor"
+                      stroke="none"
+                    />
+                  </Icon>
+                  <span>Stop</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="agent-submit agent-send"
+                  disabled={!draft.trim()}
+                  onClick={send}
+                >
+                  <span>Send</span>
+                  <Icon size={15}>
+                    <path d="M12 19V5M5 12l7-7 7 7" />
+                  </Icon>
+                </button>
+              )}
+            </div>
+            <span className="agent-composer-hint">Enter to send · Shift+Enter for a newline</span>
           </div>
         </div>
       </div>

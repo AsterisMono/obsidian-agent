@@ -17,4 +17,4 @@ Requires desktop Obsidian 1.11.4 or later and access to a model provider. Note c
 
 For contributing and verification, see the [development guide](docs/development.md) and [Land Changes](.agents/skills/land-changes/SKILL.md).
 
-Last updated at: `e9edb30c661cde37384e105f98c70edaa4fd6dd4`.
+Last updated at: `c074b65f6baa3d1a19004329309465913fa9e5c9`.

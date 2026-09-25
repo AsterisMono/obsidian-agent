@@ -1,0 +1,258 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="1240"
+  height="1050"
+  viewBox="0 0 1240 1050"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">Amber Lark composer design reference</title>
+  <desc id="description">
+    Annotated light and dark composer mockups at 420 and 260 CSS pixels, showing idle, attached,
+    responding and unavailable-model states. This is design intent, not a screenshot or verification
+    evidence.
+  </desc>
+  <defs>
+    <style>
+      text {
+        font-family:
+          DejaVu Sans,
+          sans-serif;
+        font-size: 12px;
+      }
+      .heading {
+        font-size: 27px;
+        font-weight: 700;
+        fill: #17202d;
+      }
+      .sub {
+        font-size: 13px;
+        fill: #526171;
+      }
+      .label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #17202d;
+      }
+      .normal {
+        fill: #27272b;
+      }
+      .muted {
+        fill: #666670;
+      }
+      .darknormal {
+        fill: #eeeeef;
+      }
+      .darkmuted {
+        fill: #bbbbc3;
+      }
+      .small {
+        font-size: 10px;
+      }
+      .strong {
+        font-weight: 700;
+      }
+      .note {
+        font-size: 13px;
+        fill: #314256;
+      }
+      .number {
+        fill: #ffffff;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+    </style>
+    <g
+      id="chevron"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m0 0 4 4 4-4" />
+    </g>
+    <g
+      id="arrow"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M0 7V-5m-4 4 4-4 4 4" />
+    </g>
+  </defs>
+  <rect width="1240" height="1050" fill="#edf1f5" />
+  <text x="40" y="47" class="heading">One place to compose and configure a message</text>
+  <text x="40" y="76" class="sub">
+    Amber Lark · annotated design mockup · 1 SVG unit = 1 CSS px inside each panel · desktop
+    Obsidian default themes
+  </text>
+  <text x="40" y="99" class="sub">
+    Illustrative colors approximate theme tokens. Layout and state meanings are binding; this image
+    is not runtime evidence.
+  </text>
+
+  <text x="40" y="138" class="label">A · 420 px · light · ready with a draft</text>
+  <g transform="translate(40 153)">
+    <rect width="420" height="348" rx="8" fill="#ffffff" stroke="#d4d4da" />
+    <text x="16" y="27" class="normal strong">✦ Agent</text>
+    <text x="342" y="27" class="muted">+ New</text>
+    <path d="M13 43H407" stroke="#e6e6eb" />
+    <text x="16" y="68" class="muted small strong">Conversation</text>
+    <text x="370" y="68" class="muted small">Ready</text>
+    <text x="16" y="112" class="normal">What can I help with?</text>
+    <text x="16" y="133" class="muted">Ask a question about your vault.</text>
+    <rect x="13" y="166" width="394" height="169" rx="13" fill="#f6f6f7" stroke="#dcdce2" />
+    <text x="26" y="191" class="normal">Summarize this week's notes.</text>
+    <rect x="23" y="234" width="235" height="32" rx="8" fill="#ffffff" stroke="#dcdce2" />
+    <text x="31" y="254" class="normal">fixture-alternate · custom-fixture</text>
+    <use href="#chevron" x="241" y="247" color="#666670" />
+    <rect x="265" y="234" width="132" height="32" rx="8" fill="#ffffff" stroke="#dcdce2" />
+    <text x="273" y="254" class="normal">Thinking: high</text>
+    <use href="#chevron" x="380" y="247" color="#666670" />
+    <text x="270" y="294" class="muted">Attach</text>
+    <rect x="331" y="273" width="66" height="32" rx="8" fill="#7659d6" />
+    <text x="341" y="293" fill="#ffffff">Send</text>
+    <use href="#arrow" x="382" y="290" color="#ffffff" />
+    <text x="170" y="323" class="muted small">Enter to send · Shift+Enter for a newline</text>
+  </g>
+
+  <text x="520" y="138" class="label">B · 260 px · dark · attached</text>
+  <g transform="translate(520 153)">
+    <rect width="260" height="348" rx="8" fill="#1e1e22" stroke="#44444b" />
+    <text x="16" y="27" class="darknormal strong">✦ Agent</text>
+    <text x="188" y="27" class="darkmuted">+ New</text>
+    <path d="M13 43H247" stroke="#38383f" />
+    <text x="16" y="68" class="darkmuted small strong">Conversation</text>
+    <text x="208" y="68" class="darkmuted small">Ready</text>
+    <rect x="13" y="90" width="234" height="245" rx="13" fill="#27272d" stroke="#484850" />
+    <rect x="23" y="100" width="214" height="25" rx="7" fill="#1e1e22" stroke="#484850" />
+    <text x="31" y="117" class="darkmuted small">Projects/weekly-review-notes…</text>
+    <text x="26" y="150" class="darknormal">Summarize this note.</text>
+    <text x="26" y="170" class="darknormal">Keep the action items.</text>
+    <rect x="23" y="203" width="214" height="32" rx="8" fill="#1e1e22" stroke="#484850" />
+    <text x="31" y="223" class="darknormal">fixture-model-with-a-long…</text>
+    <use href="#chevron" x="220" y="216" color="#bbbbc3" />
+    <rect x="23" y="242" width="214" height="32" rx="8" fill="#1e1e22" stroke="#484850" />
+    <text x="31" y="262" class="darknormal">Thinking: medium</text>
+    <use href="#chevron" x="220" y="255" color="#bbbbc3" />
+    <text x="109" y="300" class="darkmuted">Attach</text>
+    <rect x="171" y="280" width="66" height="32" rx="8" fill="#8a6bea" />
+    <text x="181" y="300" fill="#ffffff">Send</text>
+    <use href="#arrow" x="222" y="297" color="#ffffff" />
+  </g>
+
+  <g transform="translate(830 158)">
+    <circle cx="12" cy="11" r="12" fill="#365b83" />
+    <text x="12" y="15" class="number">1</text>
+    <text x="36" y="15" class="note strong">One composer surface</text>
+    <text x="0" y="43" class="note">Attachment → message → selectors</text>
+    <text x="0" y="64" class="note">→ actions. Remove the upper strip.</text>
+    <text x="0" y="85" class="note">Conversation scrolling never hides it.</text>
+    <circle cx="12" cy="126" r="12" fill="#365b83" />
+    <text x="12" y="130" class="number">2</text>
+    <text x="36" y="130" class="note strong">Native selects, visible affordance</text>
+    <text x="0" y="158" class="note">Model name first; provider follows.</text>
+    <text x="0" y="179" class="note">An ellipsis is allowed; opening the</text>
+    <text x="0" y="200" class="note">picker exposes the full option.</text>
+    <circle cx="12" cy="241" r="12" fill="#365b83" />
+    <text x="12" y="245" class="number">3</text>
+    <text x="36" y="245" class="note strong">Wrap for the sidebar</text>
+    <text x="0" y="273" class="note">420 px: pair + action row.</text>
+    <text x="0" y="294" class="note">260 / 320 px: stacked selectors.</text>
+    <text x="0" y="315" class="note">Keep 32 px targets and focus space.</text>
+    <text x="0" y="336" class="note">Hide a hint before truncating its keys.</text>
+  </g>
+
+  <text x="40" y="557" class="label">C · 420 px · dark · responding with a new draft</text>
+  <g transform="translate(40 572)">
+    <rect width="420" height="348" rx="8" fill="#1e1e22" stroke="#44444b" />
+    <text x="16" y="27" class="darknormal strong">✦ Agent</text>
+    <text x="342" y="27" class="darkmuted">+ New</text>
+    <path d="M13 43H407" stroke="#38383f" />
+    <text x="16" y="68" class="darkmuted small strong">Conversation</text>
+    <text x="335" y="68" class="darkmuted small">Responding</text>
+    <text x="16" y="112" class="darknormal">✦ Here are the main points…</text>
+    <rect x="13" y="166" width="394" height="169" rx="13" fill="#27272d" stroke="#9373ef" />
+    <text x="26" y="191" class="darknormal">Next, group them by project.</text>
+    <g opacity="0.6">
+      <rect x="23" y="234" width="235" height="32" rx="8" fill="#1e1e22" stroke="#484850" />
+      <text x="31" y="254" class="darknormal">fixture-alternate · custom-fixture</text>
+      <use href="#chevron" x="241" y="247" color="#bbbbc3" />
+      <rect x="265" y="234" width="132" height="32" rx="8" fill="#1e1e22" stroke="#484850" />
+      <text x="273" y="254" class="darknormal">Thinking: high</text>
+      <use href="#chevron" x="380" y="247" color="#bbbbc3" />
+    </g>
+    <text x="270" y="294" class="darkmuted">Attach</text>
+    <rect x="331" y="273" width="66" height="32" rx="8" fill="#1e1e22" stroke="#484850" />
+    <rect x="342" y="284" width="10" height="10" rx="2" fill="#eeeeef" />
+    <text x="359" y="294" class="darknormal">Stop</text>
+    <text x="170" y="323" class="darkmuted small">Enter to send · Shift+Enter for a newline</text>
+  </g>
+
+  <text x="520" y="557" class="label">D · 260 px · light · no model</text>
+  <g transform="translate(520 572)">
+    <rect width="260" height="348" rx="8" fill="#ffffff" stroke="#d4d4da" />
+    <text x="16" y="27" class="normal strong">✦ Agent</text>
+    <path d="M13 43H247" stroke="#e6e6eb" />
+    <text x="16" y="67" class="normal">Choose a model in the sidebar</text>
+    <text x="16" y="85" class="normal">or configure one in settings.</text>
+    <rect x="13" y="110" width="234" height="225" rx="13" fill="#f6f6f7" stroke="#dcdce2" />
+    <text x="26" y="137" class="normal">Keep this draft.</text>
+    <rect x="23" y="184" width="214" height="32" rx="8" fill="#ffffff" stroke="#dcdce2" />
+    <rect
+      x="20"
+      y="181"
+      width="220"
+      height="38"
+      rx="10"
+      fill="none"
+      stroke="#7659d6"
+      stroke-width="2"
+    />
+    <text x="31" y="204" class="normal">Choose a model</text>
+    <use href="#chevron" x="220" y="197" color="#666670" />
+    <rect x="23" y="226" width="214" height="32" rx="8" fill="#ffffff" stroke="#dcdce2" />
+    <text x="31" y="246" class="normal">Thinking: medium</text>
+    <use href="#chevron" x="220" y="239" color="#666670" />
+    <text x="109" y="292" class="muted">Attach</text>
+    <rect x="171" y="272" width="66" height="32" rx="8" fill="#7659d6" />
+    <text x="181" y="292" fill="#ffffff">Send</text>
+    <use href="#arrow" x="222" y="289" color="#ffffff" />
+  </g>
+
+  <g transform="translate(830 585)">
+    <circle cx="12" cy="11" r="12" fill="#365b83" />
+    <text x="12" y="15" class="number">4</text>
+    <text x="36" y="15" class="note strong">Lock settings during a run</text>
+    <text x="0" y="43" class="note">Disabled Model and Thinking are</text>
+    <text x="0" y="64" class="note">still visible. Stop stays reachable.</text>
+    <text x="0" y="85" class="note">Newly typed text belongs to the user.</text>
+    <circle cx="12" cy="126" r="12" fill="#365b83" />
+    <text x="12" y="130" class="number">5</text>
+    <text x="36" y="130" class="note strong">Recover without losing the draft</text>
+    <text x="0" y="158" class="note">Missing model: no request; show the</text>
+    <text x="0" y="179" class="note">existing error and allow selection.</text>
+    <text x="0" y="200" class="note">Model shown with keyboard focus.</text>
+    <text x="0" y="221" class="note">No automatic focus jump is required.</text>
+    <circle cx="12" cy="262" r="12" fill="#365b83" />
+    <text x="12" y="266" class="number">6</text>
+    <text x="36" y="266" class="note strong">Stable keyboard path</text>
+    <text x="0" y="294" class="note">Message → Model → Thinking →</text>
+    <text x="0" y="315" class="note">Attach → Send. Native select keys.</text>
+  </g>
+  <text x="40" y="967" class="sub">
+    Wide expansion: a single footer row is allowed when all controls and model identity fit; wrap
+    thresholds remain implementation discretion.
+  </text>
+  <text x="40" y="991" class="sub">
+    Theme map: primary = page/control · secondary = card · border = structure · normal/muted = text
+    · accent/on-accent = Send/focus.
+  </text>
+  <text x="40" y="1015" class="sub">
+    Reference authored after implementation began to clarify the original contract. It does not
+    replace independent E2E or the actual-plugin design review.
+  </text>
+</svg>

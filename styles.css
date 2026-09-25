@@ -52,6 +52,7 @@
 .agent-search-wrap,
 .agent-attachment,
 .agent-attach-button,
+.agent-composer-actions,
 .agent-submit {
   display: flex;
   align-items: center;
@@ -246,43 +247,6 @@
   font-size: var(--font-ui-smaller);
 }
 
-.agent-controls {
-  display: grid;
-  flex: 0 0 auto;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
-  gap: 8px;
-  min-width: 0;
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.agent-controls label {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  min-width: 0;
-  color: var(--text-muted);
-  font-size: 10px;
-  font-weight: var(--font-medium);
-}
-
-.agent-controls select {
-  width: 100%;
-  min-width: 0;
-  height: 32px;
-  padding: 0 24px 0 9px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 8px;
-  color: var(--text-normal);
-  background-color: var(--background-secondary);
-  font-size: var(--font-ui-smaller);
-  text-overflow: ellipsis;
-}
-
-.agent-controls select:disabled {
-  opacity: 0.6;
-}
-
 .agent-conversation-header {
   flex: 0 0 auto;
   padding: 12px 15px 6px;
@@ -463,6 +427,7 @@
   border-radius: 13px;
   background: var(--background-secondary);
   box-shadow: 0 2px 10px rgb(0 0 0 / 4%);
+  container-type: inline-size;
 }
 
 .agent-composer-card:focus-within {
@@ -514,19 +479,79 @@
   white-space: nowrap;
 }
 
-.agent-actions {
-  display: flex;
+.agent-composer-footer {
+  display: grid;
+  grid-template-columns: minmax(80px, 1.4fr) minmax(132px, 1fr) auto;
+  grid-template-areas: 'model thinking actions';
   align-items: center;
-  gap: 7px;
+  gap: 6px 7px;
   min-width: 0;
-  margin-top: 5px;
+  margin-top: 6px;
+}
+
+.agent-composer-field {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.agent-composer-field::after {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-end: 10px;
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+  content: '';
+}
+
+.agent-composer-field:has(select:disabled)::after {
+  opacity: 0.5;
+}
+
+.agent-composer-model {
+  grid-area: model;
+}
+
+.agent-composer-thinking {
+  grid-area: thinking;
+}
+
+.agent-composer-actions {
+  justify-content: flex-end;
+  gap: 7px;
+  grid-area: actions;
+  min-width: 0;
+}
+
+.agent-composer select {
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  padding-block: 0;
+  padding-inline: 8px 22px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  color: var(--text-normal);
+  background-color: var(--background-primary);
+  font-size: var(--font-ui-smaller);
+  text-overflow: ellipsis;
+}
+
+.agent-composer select:disabled {
+  opacity: 0.6;
 }
 
 .agent-view .agent-attach-button {
   justify-content: center;
   gap: 5px;
-  min-width: 30px;
-  min-height: 30px;
+  min-width: 32px;
+  min-height: 32px;
   padding: 4px 6px;
   border: 0;
   border-radius: 7px;
@@ -541,16 +566,19 @@
 }
 
 .agent-composer-hint {
-  margin-left: auto;
+  grid-column: 1 / -1;
+  justify-self: end;
+  max-width: 100%;
   color: var(--text-faint);
   font-size: 10px;
-  white-space: nowrap;
+  line-height: 1.4;
+  text-align: end;
 }
 
 .agent-view .agent-submit {
   justify-content: center;
   gap: 5px;
-  min-height: 31px;
+  min-height: 32px;
   padding: 5px 9px;
   border: 0;
   border-radius: 8px;
@@ -579,6 +607,25 @@
   color: var(--text-normal);
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
+}
+
+@container (max-width: 459px) {
+  .agent-composer-footer {
+    grid-template-columns: minmax(80px, 1.4fr) minmax(132px, 1fr);
+    grid-template-areas:
+      'model thinking'
+      'actions actions';
+  }
+}
+
+@container (max-width: 339px) {
+  .agent-composer-footer {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'model'
+      'thinking'
+      'actions';
+  }
 }
 
 @keyframes agent-cursor {
